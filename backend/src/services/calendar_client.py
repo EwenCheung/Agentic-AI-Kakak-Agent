@@ -142,10 +142,10 @@ class GoogleCalendarClient:
         arguments = {
             "calendarId": calendar_id,
             "summary": title,
-            "start": {"dateTime": start_datetime},
-            "end": {"dateTime": end_datetime}
+            "start": start_datetime,
+            "end": end_datetime
         }
-        
+
         if description:
             arguments["description"] = description
             

@@ -10,6 +10,7 @@ load_dotenv()
 class Settings(BaseSettings):
     AWS_ACCESS_KEY_ID : str | None = None
     AWS_SECRET_ACCESS_KEY : str | None = None
+    AWS_SESSION_TOKEN : str | None = None
     AWS_REGION : str | None = None
 
     BEDROCK_MODEL_ID : str | None = None
@@ -22,6 +23,7 @@ class Settings(BaseSettings):
         return boto3.Session(
             aws_access_key_id=self.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
+            aws_session_token=self.AWS_SESSION_TOKEN,
             region_name=self.AWS_REGION,
         )
 
