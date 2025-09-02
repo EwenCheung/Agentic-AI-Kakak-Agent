@@ -13,7 +13,8 @@ from .tools.calendar_tools import (
     list_events, 
     update_event,
     search_events,
-    list_calendars
+    list_calendars,
+    get_event_details
 )
 
 @tool
@@ -44,7 +45,8 @@ def scheduler_assistant(query: str) -> str:
             list_events, 
             update_event,
             search_events,
-            list_calendars
+            list_calendars,
+            get_event_details
         ],
     )
 
