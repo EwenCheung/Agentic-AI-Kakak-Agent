@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     AWS_REGION : str | None = None
 
     BEDROCK_MODEL_ID : str | None = None
+    
+    # Google Calendar MCP settings
+    GOOGLE_CALENDAR_CREDENTIALS_PATH: str | None = None
 
     @property
     def SESSION(self):

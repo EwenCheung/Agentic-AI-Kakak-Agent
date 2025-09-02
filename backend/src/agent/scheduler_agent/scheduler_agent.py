@@ -5,7 +5,15 @@ from strands_tools import current_time
 
 from ...config.settings import settings
 from ..scheduler_agent.scheduler_system_prompt import SCHEDULER_SYSTEM_PROMPT
-from .tools.calendar_tools import check_availability, schedule_event, get_empty_slots, cancel_event, list_events, update_event
+from .tools.calendar_tools import (
+    check_availability, 
+    schedule_event, 
+    get_empty_slots, 
+    cancel_event, 
+    list_events, 
+    update_event,
+    search_events
+)
 
 @tool
 def scheduler_assistant(query: str) -> str:
@@ -26,7 +34,16 @@ def scheduler_assistant(query: str) -> str:
     scheduler_agent = Agent(
         model=model,
         system_prompt=SCHEDULER_SYSTEM_PROMPT,
-        tools=[current_time, check_availability, schedule_event, get_empty_slots, cancel_event, list_events, update_event],
+        tools=[
+            current_time, 
+            check_availability, 
+            schedule_event, 
+            get_empty_slots, 
+            cancel_event, 
+            list_events, 
+            update_event,
+            search_events
+        ],
     )
 
 
