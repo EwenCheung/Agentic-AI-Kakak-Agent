@@ -1,26 +1,48 @@
 from strands import Agent, tool
-
 from strands.models import BedrockModel
+import json
+from typing import Optional, Dict, Any, List
+import asyncio
+import textwrap
 
 from ...config.settings import settings
 from .chat_system_prompt import CHAT_SYSTEM_PROMPT
-from .tools.chat_tools import search_knowledge_base, retrieve_conversation_history
-
+from .tools.telegram_tools import (
+    get_chats,
+    get_messages,
+    send_message,
+    list_contacts,
+    search_contacts,
+    get_contact_ids,
+    list_messages,
+    list_chats,
+    get_chat,
+    get_direct_chat_by_contact,
+    get_contact_chats,
+    get_last_interaction,
+    get_message_context,
+    get_me,
+    send_voice,
+    pin_message,
+    unpin_message,
+    mark_as_read,
+    reply_to_message,
+    search_messages,
+    get_history,
+    get_pinned_messages,
+)
 
 
 @tool
-def chat_assistant(query: str, company_name: str, tone_and_manner: str, phone_number: str) -> str:
-    """
-    A chat assistant that can answer questions and escalate to other agents.
+def chat_assistant(
+    query: str,
+    host_company: str = "Company A",
+    tone_and_manner: str = "Friendly and Professional",
+    configuration: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Execution agent for orchestrator instructions (NOT direct end-user freeform input).
 
-    Args:
-        query (str): The user's query.
-        company_name (str): The name of the company.
-        tone_and_manner (str): The tone and manner to use in the response.
-        phone_number (str): The phone number of the user.
-
-    Returns:
-        str: The agent's response.
+    Returns normalized JSON plan; optionally executes planned tool calls and attaches results.
     """
 
     model = BedrockModel(
@@ -28,17 +50,51 @@ def chat_assistant(query: str, company_name: str, tone_and_manner: str, phone_nu
         boto_session=settings.SESSION,
     )
 
-    formatted_prompt = CHAT_SYSTEM_PROMPT.format(
-        company_name=company_name,
-        tone_and_manner=tone_and_manner
+    # Avoid Python str.format consuming JSON braces in the prompt by doing simple placeholder replacement
+    formatted_prompt = (
+        CHAT_SYSTEM_PROMPT
+        .replace("{host_company}", host_company)
+        .replace("{tone_and_manner}", tone_and_manner)
     )
+
+    print("formatted_prompt", formatted_prompt)
+
+    tools = [
+        get_chats,
+        get_messages,
+        send_message,
+        list_contacts,
+        search_contacts,
+        get_contact_ids,
+        list_messages,
+        list_chats,
+        get_chat,
+        get_direct_chat_by_contact,
+        get_contact_chats,
+        get_last_interaction,
+        get_message_context,
+        get_me,
+        send_voice,
+        mark_as_read,
+        reply_to_message,
+        search_messages,
+        get_history,
+        get_pinned_messages,
+        pin_message,
+        unpin_message
+    ]
 
     chat_agent = Agent(
         model=model,
         system_prompt=formatted_prompt,
-        tools=[search_knowledge_base, retrieve_conversation_history],
+        tools=tools,
     )
 
+    # Build orchestrator context block
+    context_parts = [f"INSTRUCTION: {query}"]
 
-    response = chat_agent(query)
-    return response
+    orchestrator_context = "\n".join(context_parts)
+    print("orchestrator_context", orchestrator_context)
+    raw_response = chat_agent(orchestrator_context)
+    return raw_response
+

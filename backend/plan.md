@@ -68,7 +68,6 @@ This document outlines a clear plan for improving the structure, workflow, and t
 ### Orchestrator Agent
 - **Tools:** `src/agent/orchestrator_agent/tools/orchestrator_tools.py`
     - **`delegate_task(agent_name: str, task: str)`:** To send a task to a specialist agent.
-    - **`send_user_response(message: str)`:** To send a final response to the user.
 - **Rationale:** The Orchestrator should only have tools for delegation and communication. It should not have direct access to the tools of the specialist agents.
 
 ### Chat Agent

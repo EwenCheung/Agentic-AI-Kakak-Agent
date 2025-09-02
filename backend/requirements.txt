@@ -1,7 +1,17 @@
 fastapi
-uvicorn[standard]
+uvicorn
+uv
 
 # Strands
 strands-agents
 strands-agents-tools
 strands-agents-builder
+
+# Telegram
+telethon
+dotenv>=0.9.9
+httpx>=0.28.1
+mcp[cli]>=1.4.1
+nest-asyncio>=1.6.0
+python-dotenv>=1.1.0
+telethon>=1.39.0 
