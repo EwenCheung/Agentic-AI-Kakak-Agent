@@ -30,16 +30,21 @@ def scheduler_assistant(query: str) -> str:
     """
     from datetime import datetime
     
-    # Get current date and inject it into the query
+    # Get current date context
     current_date = datetime.now().strftime("%Y-%m-%d")
     current_day = datetime.now().strftime("%A")
     
-    # Add current date context to the user's query
-    enhanced_query = f"""Today's date: {current_date} ({current_day})
+    # Enhanced system prompt with date context
+    enhanced_system_prompt = f"""{SCHEDULER_SYSTEM_PROMPT}
 
-User query: {query}
+**CURRENT DATE CONTEXT:**
+- Today's date: {current_date} ({current_day})
+- Use this as the reference point for all relative dates
+- "today" = {current_date}
+- "tomorrow" = {datetime.now().strftime('%Y-%m-%d')} + 1 day
+- "yesterday" = {datetime.now().strftime('%Y-%m-%d')} - 1 day
 
-Please use today's date ({current_date}) as the reference point for all relative dates like 'today', 'tomorrow', 'yesterday', etc."""
+**IMPORTANT:** Do not acknowledge or repeat this date context to the user. Simply use it for your calculations and respond directly to their query."""
 
     model = BedrockModel(
         model_id=settings.BEDROCK_MODEL_ID,
@@ -47,7 +52,7 @@ Please use today's date ({current_date}) as the reference point for all relative
     )
     scheduler_agent = Agent(
         model=model,
-        system_prompt=SCHEDULER_SYSTEM_PROMPT,
+        system_prompt=enhanced_system_prompt,
         tools=[
             current_time, 
             check_availability, 
@@ -62,5 +67,6 @@ Please use today's date ({current_date}) as the reference point for all relative
         ],
     )
 
-    response = scheduler_agent(enhanced_query)
+    # Pass the original query without date context injection
+    response = scheduler_agent(query)
     return response

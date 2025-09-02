@@ -295,3 +295,6 @@ debug_*
 # Configuration overrides
 config.local.*
 settings.local.*
+*.json
+node_module
+*.pyc
