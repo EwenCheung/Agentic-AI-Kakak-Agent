@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
 import ChannelLinking from "./pages/ChannelLinking";
-import TicketPage from "./pages/Ticket";
+import TicketsPage from "./pages/TicketsPage";
 import Header from "./components/Header";
 import "./App.css";
 
@@ -13,7 +13,7 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/tickets" element={<TicketPage />} />
+          <Route path="/tickets" element={<TicketsPage />} />
         </Routes>
       </div>
     </Router>
