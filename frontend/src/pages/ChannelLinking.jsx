@@ -8,7 +8,9 @@ const ChannelLinking = () => {
       <div className="flex items-center mb-2">
         <div className="text-xl mr-2">Channel Linking</div>
         <img src={ChannelIcon} alt="" className="w-5 h-5" />
-        <div className="ml-auto border border-black px-2 py-1 rounded-lg hover:bg-red-500 cursor-pointer">Configuration</div>
+        <div className="ml-auto border border-black px-2 py-1 rounded-md hover:bg-red-500 cursor-pointer">
+          Configuration
+        </div>
       </div>
       <div className="border border-black px-4 py-2 rounded-lg h-32">
         <div>
@@ -16,13 +18,13 @@ const ChannelLinking = () => {
               <hr className="border-t border-gray-300 mt-2"></hr> */}
         </div>
 
-        <div className="flex">
+        <div className="flex items-center">
           {/* Add your channel linking options here */}
           <div className="mr-8">
             <img src={WhatsappIcon} className="w-16" alt="" />
             WhatsApp
-            <div className="border border-black rounded-sm">
-                Link
+            <div className="flex justify-center border border-black rounded-sm">
+              Link
             </div>
           </div>
           <div>
