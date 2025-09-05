@@ -5,3 +5,9 @@ uvicorn[standard]
 strands-agents
 strands-agents-tools
 strands-agents-builder
+
+# MCP and Google Calendar
+mcp
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
