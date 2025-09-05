@@ -3,6 +3,7 @@ from strands.models import BedrockModel
 from strands_tools import current_time
 import threading
 
+
 from ...config.settings import settings
 from .scheduler_system_prompt import SCHEDULER_SYSTEM_PROMPT
 from .tools.calendar_tools import (
@@ -12,6 +13,7 @@ from .tools.calendar_tools import (
     cancel_event,
     list_events,
 )
+
 
 class SchedulerAssistant:
     def __init__(self):
