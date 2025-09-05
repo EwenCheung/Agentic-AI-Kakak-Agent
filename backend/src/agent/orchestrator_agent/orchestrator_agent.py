@@ -33,9 +33,16 @@ def orchestrator_assistant(query: str, company_name: str, tone_and_manner: str, 
     orchestrator_agent = Agent(
         model=model,
         system_prompt=ORCHESTRATOR_SYSTEM_PROMPT,
-        tools = [current_time, chat_assistant, daily_digest_assistant, scheduler_assistant, ticketing_assistant]
+        tools = [
+            current_time, 
+            chat_assistant, 
+            daily_digest_assistant, 
+            scheduler_assistant, 
+            ticketing_assistant
+            ]
     )
 
 
     response = orchestrator_agent(query)
     return response
+

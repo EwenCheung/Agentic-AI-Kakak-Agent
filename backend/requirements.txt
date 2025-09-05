@@ -1,13 +1,20 @@
 fastapi
 uvicorn[standard]
+uv
 
 # Strands
 strands-agents
 strands-agents-tools
 strands-agents-builder
 
-# MCP and Google Calendar
-mcp
+# Telegram
+telethon
+dotenv>=0.9.9
+httpx>=0.28.1
+nest-asyncio>=1.6.0
+python-dotenv>=1.1.0
+telethon>=1.39.0
+
+# Google Calendar
 google-api-python-client
-google-auth-httplib2
 google-auth-oauthlib

@@ -1,72 +1,55 @@
 from strands import Agent, tool
-
 from strands.models import BedrockModel
 from strands_tools import current_time
+import threading
 
 from ...config.settings import settings
-from ..scheduler_agent.scheduler_system_prompt import SCHEDULER_SYSTEM_PROMPT
+from .scheduler_system_prompt import SCHEDULER_SYSTEM_PROMPT
 from .tools.calendar_tools import (
-    check_availability, 
-    schedule_event, 
-    get_empty_slots, 
-    cancel_event, 
-    list_events, 
-    update_event,
-    search_events,
-    list_calendars,
-    get_event_details
+    check_availability,
+    schedule_event,
+    get_empty_slots,
+    cancel_event,
+    list_events,
 )
 
-@tool
-def scheduler_assistant(query: str) -> str:
-    """
-    A scheduler assistant that can manage calendar events.
+class SchedulerAssistant:
+    def __init__(self):
+        self.lock = threading.Lock()
 
-    Args:
-        query (str): The user's query.
+    @tool
+    def __call__(self, query: str) -> str:
+        """Scheduler assistant with Google Calendar integration."""
+        with self.lock:
+            from datetime import datetime, timedelta
 
-    Returns:
-        str: The agent's response.
-    """
-    from datetime import datetime
-    
-    # Get current date context
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    current_day = datetime.now().strftime("%A")
-    
-    # Enhanced system prompt with date context
-    enhanced_system_prompt = f"""{SCHEDULER_SYSTEM_PROMPT}
+            today = datetime.utcnow().date()
+            system_with_context = f"""{SCHEDULER_SYSTEM_PROMPT}
 
-**CURRENT DATE CONTEXT:**
-- Today's date: {current_date} ({current_day})
-- Use this as the reference point for all relative dates
-- "today" = {current_date}
-- "tomorrow" = {datetime.now().strftime('%Y-%m-%d')} + 1 day
-- "yesterday" = {datetime.now().strftime('%Y-%m-%d')} - 1 day
+CURRENT DATE CONTEXT (hidden from user-facing replies):
+- Today: {today.isoformat()} ({today.strftime('%A')})
+- We are at GMT+8
+- Use this for interpreting relative dates (today / tomorrow / yesterday).
+IMPORTANT: Do NOT echo this context back to the user; respond directly.
+"""
 
-**IMPORTANT:** Do not acknowledge or repeat this date context to the user. Simply use it for your calculations and respond directly to their query."""
+            model = BedrockModel(
+                model_id=settings.BEDROCK_MODEL_ID,
+                boto_session=settings.SESSION,
+            )
 
-    model = BedrockModel(
-        model_id=settings.BEDROCK_MODEL_ID,
-        boto_session=settings.SESSION,
-    )
-    scheduler_agent = Agent(
-        model=model,
-        system_prompt=enhanced_system_prompt,
-        tools=[
-            current_time, 
-            check_availability, 
-            schedule_event, 
-            get_empty_slots, 
-            cancel_event, 
-            list_events, 
-            update_event,
-            search_events,
-            list_calendars,
-            get_event_details
-        ],
-    )
+            agent = Agent(
+                model=model,
+                system_prompt=system_with_context,
+                tools=[
+                    current_time,
+                    check_availability,
+                    schedule_event,
+                    get_empty_slots,
+                    cancel_event,
+                    list_events,
+                ],
+            )
+            return agent(query)
 
-    # Pass the original query without date context injection
-    response = scheduler_agent(query)
-    return response
+scheduler_assistant = SchedulerAssistant()
