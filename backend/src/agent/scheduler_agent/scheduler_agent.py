@@ -53,4 +53,3 @@ IMPORTANT: Do NOT echo this context back to the user; respond directly.
             return agent(query)
 
 scheduler_assistant = SchedulerAssistant()
-
