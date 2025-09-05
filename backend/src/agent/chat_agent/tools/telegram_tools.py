@@ -47,21 +47,31 @@ def json_serializer(obj):
 
 load_dotenv()
 
-TELEGRAM_API_ID = int(os.getenv("TELEGRAM_API_ID"))
+# --- Robust environment parsing (allow backend to start without Telegram configured) ---
+_api_id_raw = os.getenv("TELEGRAM_API_ID")
+try:
+    TELEGRAM_API_ID = int(_api_id_raw) if _api_id_raw is not None else None
+except ValueError:
+    TELEGRAM_API_ID = None
 TELEGRAM_API_HASH = os.getenv("TELEGRAM_API_HASH")
 TELEGRAM_SESSION_NAME = os.getenv("TELEGRAM_SESSION_NAME")
+SESSION_STRING = os.getenv("TELEGRAM_SESSION_STRING")  # optional
 
-# Check if a string session exists in environment, otherwise use file-based session
-SESSION_STRING = os.getenv("TELEGRAM_SESSION_STRING")
+TELEGRAM_ENABLED = all([
+    TELEGRAM_API_ID,
+    TELEGRAM_API_HASH,
+    (SESSION_STRING or TELEGRAM_SESSION_NAME),
+])
 
 mcp = FastMCP("telegram")
 
-if SESSION_STRING:
-    # Use the string session if available
-    client = TelegramClient(StringSession(SESSION_STRING), TELEGRAM_API_ID, TELEGRAM_API_HASH)
+if TELEGRAM_ENABLED:
+    if SESSION_STRING:
+        client = TelegramClient(StringSession(SESSION_STRING), TELEGRAM_API_ID, TELEGRAM_API_HASH)
+    else:
+        client = TelegramClient(TELEGRAM_SESSION_NAME, TELEGRAM_API_ID, TELEGRAM_API_HASH)
 else:
-    # Use file-based session
-    client = TelegramClient(TELEGRAM_SESSION_NAME, TELEGRAM_API_ID, TELEGRAM_API_HASH)
+    client = None  # Placeholder; tools will return a configuration error when invoked
 
 # --- Connection management helpers -----------------------------------------------------------
 # The module functions are imported and executed inside a FastAPI process; the __main__ block
@@ -72,20 +82,23 @@ _client_started = False
 _client_lock = asyncio.Lock()
 
 async def ensure_client_started():
-    """Ensure the Telethon client is connected & authorized.
+    """Ensure the Telethon client is connected & authorized (if configured).
 
-    This is lightweight once connected; subsequent calls are NOOPs.
+    If Telegram isn't configured, raise a clear RuntimeError so calling tools can
+    surface a friendly message instead of crashing the whole API import chain.
     """
+    if not TELEGRAM_ENABLED:
+        raise RuntimeError(
+            "Telegram integration not configured. Set TELEGRAM_API_ID, TELEGRAM_API_HASH and either TELEGRAM_SESSION_NAME or TELEGRAM_SESSION_STRING to enable these tools."
+        )
     global _client_started
-    if _client_started and client.is_connected():
+    if _client_started and client and client.is_connected():
         return
     async with _client_lock:
-        if _client_started and client.is_connected():  # Double‑checked inside lock
+        if _client_started and client and client.is_connected():
             return
-        # Prefer connect() (non-interactive). start() may prompt if not authorized.
         await client.connect()
         if not await client.is_user_authorized():
-            # Attempt non-interactive start; if still not authorized, raise a clear error.
             try:
                 await client.start()
             except Exception as auth_err:

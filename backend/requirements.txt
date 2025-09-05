@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 uv
 
 # Strands
@@ -14,4 +14,10 @@ httpx>=0.28.1
 mcp[cli]>=1.4.1
 nest-asyncio>=1.6.0
 python-dotenv>=1.1.0
-telethon>=1.39.0 
+telethon>=1.39.0
+
+# MCP and Google Calendar
+mcp
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib

@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any, List
 import asyncio
 import textwrap
 
+
 from ...config.settings import settings
 from .chat_system_prompt import CHAT_SYSTEM_PROMPT
 from .tools.telegram_tools import (

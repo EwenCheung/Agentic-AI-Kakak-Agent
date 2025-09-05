@@ -20,6 +20,17 @@ class Settings(BaseSettings):
     TELEGRAM_SESSION_NAME: str | None = None
     TELEGRAM_SESSION_STRING: str | None = None
 
+    # Google Calendar (MCP) integration
+    GOOGLE_CALENDAR_CREDENTIALS_PATH: str | None = None
+    GOOGLE_CALENDAR_CLIENT_ID: str | None = None
+    GOOGLE_CALENDAR_CLIENT_SECRET: str | None = None
+    GOOGLE_CALENDAR_PROJECT_ID: str | None = None
+    GOOGLE_CALENDAR_REDIRECT_URIS: str | None = None  # comma-separated
+    # Optional advanced override fields (not required for normal use)
+    GOOGLE_CALENDAR_AUTH_URI: str | None = None
+    GOOGLE_CALENDAR_TOKEN_URI: str | None = None
+    GOOGLE_CALENDAR_AUTH_PROVIDER_X509_CERT_URL: str | None = None
+
     @cached_property
     def SESSION(self):
         """Lazily create and cache a single boto3 Session instance.

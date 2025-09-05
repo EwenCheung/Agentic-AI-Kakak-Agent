@@ -17,6 +17,7 @@ from ..agent.chat_agent.chat_agent import chat_assistant
 from ..agent.daily_digest_agent.daily_digest_agent import daily_digest_assistant
 from ..agent.scheduler_agent.scheduler_agent import scheduler_assistant
 from ..agent.ticketing_agent.ticketing_agent import ticketing_assistant
+from ..services.calendar_client import get_calendar_status
 
 
 class ChatAgentRequest(BaseModel):
@@ -68,12 +69,30 @@ async def handle_orchestrator_agent(message):
     orchestrator_assistant.invoke(message)
     return {"response": "Message processed"}
 
+class SchedulerAgentRequest(BaseModel):
+    query: str = Field(..., description="Natural language scheduling request")
+
+
 @router.post("/scheduler_agent")
-async def handle_scheduler_agent(message):
-    scheduler_assistant.invoke(message)
-    return {"response": "Message processed"}
+async def handle_scheduler_agent(request: SchedulerAgentRequest):
+    try:
+        result = scheduler_assistant(query=request.query)
+        return {"response": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/ticketing_agent")
 async def handle_ticketing_agent(message):
     ticketing_assistant.invoke(message)
     return {"response": "Message processed"}
+
+
+@router.get("/healthz")
+async def healthz():
+    return {"status": "ok"}
+
+
+@router.get("/readyz")
+async def readyz():
+    calendar = get_calendar_status()
+    return {"status": "ok" if calendar.get("configured") else "degraded", "calendar": calendar}
