@@ -11,10 +11,6 @@ from .tools.calendar_tools import (
     get_empty_slots,
     cancel_event,
     list_events,
-    update_event,
-    search_events,
-    list_calendars,
-    get_event_details,
 )
 
 class SchedulerAssistant:
@@ -32,6 +28,7 @@ class SchedulerAssistant:
 
 CURRENT DATE CONTEXT (hidden from user-facing replies):
 - Today: {today.isoformat()} ({today.strftime('%A')})
+- We are at GMT+8
 - Use this for interpreting relative dates (today / tomorrow / yesterday).
 IMPORTANT: Do NOT echo this context back to the user; respond directly.
 """
@@ -51,10 +48,6 @@ IMPORTANT: Do NOT echo this context back to the user; respond directly.
                     get_empty_slots,
                     cancel_event,
                     list_events,
-                    update_event,
-                    search_events,
-                    list_calendars,
-                    get_event_details,
                 ],
             )
             return agent(query)
