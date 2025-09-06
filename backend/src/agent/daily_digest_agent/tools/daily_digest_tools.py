@@ -1,28 +1,40 @@
 from strands import tool
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from datetime import datetime, timedelta
 
-
-@tool
-def get_todays_events() -> str:
-    """
-    Retrieves a summary of today's calendar events.
-
-    Returns:
-        str: A summary of today's events.
-    """
-    # In a real implementation, this would call the calendar API.
-    return "Today's events: 10:00 AM - Team Meeting, 2:00 PM - Project Deadline."
+from ....services.calendar_client import get_calendar_client
+from ....database.models import Ticket, get_db
 
 
 @tool
 def get_open_tickets_summary() -> str:
     """
-    Retrieves a summary of open support tickets.
+    Retrieves a summary of open support tickets from the database.
 
     Returns:
         str: A summary of open tickets.
     """
-    # In a real implementation, this would call the ticketing system API.
-    return "Open tickets: 3 high priority, 5 medium priority."
+    db: Session = next(get_db())
+    open_tickets = db.query(Ticket).filter(Ticket.status == 'open').all()
+
+    if not open_tickets:
+        return "No open tickets found."
+
+    priority_counts = db.query(
+        Ticket.priority, func.count(Ticket.id)
+    ).filter(
+        Ticket.status == 'open'
+    ).group_by(Ticket.priority).all()
+
+    summary_parts = []
+    total_open = len(open_tickets)
+    summary_parts.append(f"Total open tickets: {total_open}.")
+
+    for priority, count in priority_counts:
+        summary_parts.append(f"{count} {priority} priority tickets.")
+
+    return " ".join(summary_parts)
 
 
 @tool
@@ -33,5 +45,31 @@ def get_recent_high_priority_communications() -> str:
     Returns:
         str: A summary of recent high-priority messages.
     """
-    # In a real implementation, this would query a database or communication log.
-    return "Recent high-priority communications: Urgent request from Customer X."
+    db: Session = next(get_db())
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow_start = today_start + timedelta(days=1)
+
+    high_priority_tickets_today = db.query(Ticket).filter(
+        Ticket.priority == 'high',
+        Ticket.created_at >= today_start,
+        Ticket.created_at < tomorrow_start
+    ).all()
+
+    if not high_priority_tickets_today:
+        return "No new high-priority communications today."
+
+    communications_summary = [f"New high-priority ticket (ID: {t.id}): {t.issue}" for t in high_priority_tickets_today]
+    return "Recent high-priority communications:\n" + "\n".join(communications_summary)
+
+
+@tool
+def get_todays_events() -> str:
+    """
+    Retrieves a summary of today's calendar events.
+
+    Returns:
+        str: A summary of today's events.
+    """
+    client = get_calendar_client()
+    today_str = datetime.utcnow().strftime('%Y-%m-%d')
+    return client.list_events(today_str)

@@ -8,28 +8,20 @@ import boto3
 load_dotenv()
 
 class Settings(BaseSettings):
-    # AWS / Bedrock
+    # AWS
     AWS_ACCESS_KEY_ID: str | None = None
     AWS_SECRET_ACCESS_KEY: str | None = None
     AWS_REGION: str | None = None
+
+    # Bedrock
     BEDROCK_MODEL_ID: str | None = None
 
-    # Telegram (optional – used by MCP server). Adding here prevents Pydantic 'extra fields' errors
-    TELEGRAM_API_ID: int | None = None
-    TELEGRAM_API_HASH: str | None = None
-    TELEGRAM_SESSION_NAME: str | None = None
-    TELEGRAM_SESSION_STRING: str | None = None
+    # Telegram Bot Token
+    TELEGRAM_BOT_TOKEN: str | None = None
 
     # Google Calendar (MCP) integration
     GOOGLE_CALENDAR_CREDENTIALS_PATH: str | None = None
-    GOOGLE_CALENDAR_CLIENT_ID: str | None = None
-    GOOGLE_CALENDAR_CLIENT_SECRET: str | None = None
-    GOOGLE_CALENDAR_PROJECT_ID: str | None = None
-    GOOGLE_CALENDAR_REDIRECT_URIS: str | None = None  # comma-separated
-    # Optional advanced override fields (not required for normal use)
-    GOOGLE_CALENDAR_AUTH_URI: str | None = None
-    GOOGLE_CALENDAR_TOKEN_URI: str | None = None
-    GOOGLE_CALENDAR_AUTH_PROVIDER_X509_CERT_URL: str | None = None
+
 
     @cached_property
     def SESSION(self):
@@ -64,11 +56,11 @@ try:
     import logging
     logger = logging.getLogger(__name__)
     logger.info(
-        "Config loaded: aws_region=%s bedrock_model=%s telegram_api_id=%s telegram_session_name=%s",
+        "Config loaded: aws_region=%s bedrock_model=%s telegram_bot_token_set=%s",
         settings.AWS_REGION,
         settings.BEDROCK_MODEL_ID,
-        settings.TELEGRAM_API_ID,
-        settings.TELEGRAM_SESSION_NAME,
+        bool(settings.TELEGRAM_BOT_TOKEN),
     )
 except Exception:
     pass
+

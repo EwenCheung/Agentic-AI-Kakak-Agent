@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, func
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, func, ForeignKey, Text
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-DATABASE_URL = "sqlite:///./src/database/sql_database/tickets.db"
+DATABASE_URL = "sqlite:///./src/database/sql_database/agent.db"
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -20,6 +20,20 @@ class Ticket(Base):
 
     def __repr__(self):
         return f'<Ticket {self.id}>'
+
+class Customer(Base):
+    __tablename__ = 'customers'
+    id = Column(Integer, primary_key=True, index=True)
+    telegram_chat_id = Column(String, unique=True, nullable=True)
+    name = Column(String, nullable=True)
+    company_id = Column(String, nullable=True)
+    conversation_summary = Column(Text, nullable=True)
+    conversation_history = Column(Text, nullable=True) # New field for recent messages
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f'<Customer {self.id} ({self.name})>'
 
 def get_db():
     db = SessionLocal()
