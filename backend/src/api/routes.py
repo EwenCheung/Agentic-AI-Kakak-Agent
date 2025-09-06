@@ -30,7 +30,6 @@ class ChatAgentRequest(BaseModel):
     iterative: Optional[bool] = Field(False, description="If true, run iterative plan->execute cycles.")
     cycles: Optional[int] = Field(3, description="Max cycles when iterative=true.")
 
-
 class ChatAgentByPhoneRequest(BaseModel):
     message: str = Field(..., description="Orchestrator instruction (will resolve phone->chat_id).")
     host_company: str = Field(..., description="The name of the host company")
@@ -38,6 +37,8 @@ class ChatAgentByPhoneRequest(BaseModel):
     phone_number: str = Field(..., description="Customer's phone number with country code (e.g., '+6585505541')")
     company_config: Optional[Dict] = Field(None, description="Company configuration settings")
 
+class AgentQueryRequest(BaseModel):
+    query: str = Field(..., description="The query string for the agent.")
 
 class AgentResponse(BaseModel):
     success: bool
@@ -60,14 +61,19 @@ async def handle_chat_agent(request: ChatAgentRequest):
     )
 
 @router.post("/daily_digest")
-async def handle_daily_digest(message):
-    daily_digest_assistant(message)
-    return {"response": "Message processed"}
+async def handle_daily_digest(request: AgentQueryRequest):
+    response = daily_digest_assistant(query=request.query)
+    return {"response": response}
 
 @router.post("/orchestrator_agent")
-async def handle_orchestrator_agent(message):
-    orchestrator_assistant.invoke(message)
-    return {"response": "Message processed"}
+async def handle_orchestrator_agent(request: ChatAgentByPhoneRequest):
+    response = orchestrator_assistant(
+        query=request.message,
+        company_name=request.host_company,
+        tone_and_manner=request.tone_and_manner,
+        phone_number=request.phone_number
+    )
+    return {"response": response}
 
 class SchedulerAgentRequest(BaseModel):
     query: str = Field(..., description="Natural language scheduling request")
@@ -81,10 +87,11 @@ async def handle_scheduler_agent(request: SchedulerAgentRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/ticketing_agent")
-async def handle_ticketing_agent(message):
-    ticketing_assistant.invoke(message)
-    return {"response": "Message processed"}
+async def handle_ticketing_agent(request: AgentQueryRequest):
+    result = ticketing_assistant(query=request.query)
+    return {"response": result}
 
 
 @router.get("/healthz")

@@ -18,3 +18,7 @@ telethon>=1.39.0
 # Google Calendar
 google-api-python-client
 google-auth-oauthlib
+
+# Database
+sqlalchemy
+pydantic-settings

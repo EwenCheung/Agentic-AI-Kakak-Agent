@@ -2,9 +2,13 @@ from fastapi import FastAPI, Request
 import logging
 
 from .api.routes import router as api_router
+from .database.models import Base, engine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Create the database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Kakak Agent API")
 
