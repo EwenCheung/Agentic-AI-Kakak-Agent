@@ -13,11 +13,12 @@ from .tools.summarization_tools import summarize_customer_conversation
 
 
 @tool
-def chat_assistant(
+async def chat_assistant(
     query: str,
     chat_id: int,
     host_company: str = "Company A",
     tone_and_manner: str = "Friendly and Professional",
+    configuration: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Execution agent for orchestrator instructions (NOT direct end-user freeform input).
 
@@ -57,5 +58,5 @@ def chat_assistant(
 
     orchestrator_context = "\n".join(context_parts)
     print("orchestrator_context", orchestrator_context)
-    raw_response = chat_agent(orchestrator_context)
+    raw_response = await chat_agent.invoke_async(orchestrator_context)
     return raw_response

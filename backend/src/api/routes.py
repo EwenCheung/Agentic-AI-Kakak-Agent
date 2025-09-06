@@ -106,66 +106,25 @@ async def handle_ticketing_agent(request: AgentQueryRequest):
     return {"response": result}
 
 
+from ..database.models import get_db, Ticket, Customer, IncomingMessage
 from ..services.summarization_service import summarization_service
 
 
 @router.post("/telegram_webhook")
-async def telegram_webhook(update: Dict[str, Any], background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def telegram_webhook(update: Dict[str, Any], db: Session = Depends(get_db)):
     """
-    Receives updates from Telegram webhook, parses them, and passes to the orchestrator.
+    Receives updates from Telegram webhook and stores them in the database queue.
     """
     print("Received Telegram update:", update)
-
-    if "message" not in update or "text" not in update["message"]:
-        return {"status": "ok"}
-
-    message = update["message"]
-    chat_id = message["chat"]["id"]
-    text = message["text"]
-    first_name = message["from"].get("first_name", "User")
-    message_time = datetime.fromtimestamp(message["date"]).strftime('%Y-%m-%d %H:%M:%S')
-
-    # 1. Get or create customer
-    customer = db.query(Customer).filter(Customer.telegram_chat_id == str(chat_id)).first()
-    if not customer:
-        customer = Customer(telegram_chat_id=str(chat_id), name=first_name)
-        db.add(customer)
-        db.commit()
-        db.refresh(customer)
-
-    # 2. Append new message to conversation history
-    new_history_entry = f"[{first_name} at {message_time}]: {text}\n"
-    if customer.conversation_history:
-        customer.conversation_history += new_history_entry
-    else:
-        customer.conversation_history = new_history_entry
+    
+    # Convert payload to string to store in DB
+    payload_str = json.dumps(update)
+    
+    # Create a new message queue entry
+    new_message = IncomingMessage(payload=payload_str, status='new')
+    db.add(new_message)
     db.commit()
-
-    # 3. Construct the full context for the orchestrator
-    orchestrator_query = f"""A new message has been received from a customer.
-
-## Customer Details:
-- Name: {customer.name}
-- Telegram Chat ID: {customer.telegram_chat_id}
-
-## Conversation Summary:
-{customer.conversation_summary or 'No summary yet.'}
-
-## Recent Conversation History:
-{customer.conversation_history}
-
-Please analyze the full context and the latest message to determine the appropriate next action."""
-
-    # 4. Trigger orchestrator in the background
-    background_tasks.add_task(
-        orchestrator_assistant,
-        query=orchestrator_query
-    )
-
-    # 5. Check for and trigger summarization if history is long
-    if customer.conversation_history and len(customer.conversation_history) > 4000:
-        background_tasks.add_task(summarization_service.summarize_and_update_customer_conversation, customer.id)
-
+    
     return {"status": "ok"}
 
 

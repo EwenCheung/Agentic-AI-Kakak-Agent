@@ -28,12 +28,23 @@ class Customer(Base):
     name = Column(String, nullable=True)
     company_id = Column(String, nullable=True)
     conversation_summary = Column(Text, nullable=True)
-    conversation_history = Column(Text, nullable=True) # New field for recent messages
+    conversation_history = Column(Text, nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     def __repr__(self):
         return f'<Customer {self.id} ({self.name})>'
+
+class IncomingMessage(Base):
+    __tablename__ = 'incoming_messages'
+    id = Column(Integer, primary_key=True, index=True)
+    payload = Column(Text, nullable=False)
+    status = Column(String, default='new', index=True)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f'<IncomingMessage {self.id} ({self.status})>'
 
 def get_db():
     db = SessionLocal()
@@ -41,3 +52,6 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Create tables if they don't exist
+Base.metadata.create_all(bind=engine)

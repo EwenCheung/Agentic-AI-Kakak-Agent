@@ -12,7 +12,7 @@ from ..ticketing_agent.ticketing_agent import ticketing_assistant
 
 
 @tool
-def orchestrator_assistant(query: str) -> str:
+async def orchestrator_assistant(query: str) -> str:
     """
     An orchestrator assistant that delegates tasks to other agents.
 
@@ -40,6 +40,9 @@ def orchestrator_assistant(query: str) -> str:
     )
 
 
-    response = orchestrator_agent(query)
+    result = await orchestrator_agent.invoke_async(query)
+
+    # The result is an AgentResult object, extract the final response text.
+    response = str(result)
     return response
 

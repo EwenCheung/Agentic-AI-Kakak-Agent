@@ -12,4 +12,4 @@ def summarize_customer_conversation(customer_id: int) -> str:
     Returns:
         str: The generated summary or an error message.
     """
-    return summarization_service.summarize_customer_conversation(customer_id)
+    return summarization_service.summarize_and_update_customer_conversation(customer_id)
