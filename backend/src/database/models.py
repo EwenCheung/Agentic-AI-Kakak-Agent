@@ -30,8 +30,8 @@ class Customer(Base):
     telegram_chat_id = Column(String, unique=True, nullable=True)
     name = Column(String, nullable=True)
     company_id = Column(String, nullable=True)
-    conversation_summary = Column(Text, nullable=True)
     conversation_history = Column(Text, nullable=True)
+    # Note: conversation_history kept for business audit trail, Mem0 memory used for AI intelligence
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 

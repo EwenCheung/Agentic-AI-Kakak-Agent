@@ -1,20 +1,22 @@
+# Backend Framework
 fastapi
 uvicorn[standard]
-uv
 
-# Strands
+# Strands Agent Framework
 strands-agents
 strands-agents-tools
 strands-agents-builder
 
-# Telegram
-telethon
-dotenv>=0.9.9
-httpx>=0.28.1
-nest-asyncio>=1.6.0
-python-dotenv>=1.1.0
+# Web Search Tools
+aiohttp>=3.8.0
+rich>=13.0.0
+
+# Telegram Integration
 python-telegram-bot
 telethon>=1.39.0
+python-dotenv>=1.1.0
+httpx>=0.28.1
+nest-asyncio>=1.6.0
 
 # Google Calendar
 google-api-python-client
@@ -24,11 +26,15 @@ google-auth-oauthlib
 sqlalchemy
 pydantic-settings
 
-# Embeddings / Vector Store
-langchain
+# AI / Embeddings / Vector Store
 langchain-community
 langchain-aws
 langchain-chroma
 transformers
 docling
 requests
+
+# Memory Management
+mem0ai
+opensearch-py
+faiss-cpu

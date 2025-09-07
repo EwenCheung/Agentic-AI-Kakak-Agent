@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include all API routes (adds /chat_agent, /chat_agent_by_phone, etc.)
+# Include all API routes 
 app.include_router(api_router)
 
 @app.get("/")

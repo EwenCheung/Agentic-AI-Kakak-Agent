@@ -39,7 +39,7 @@ else:
     # Default fallback
     current_file_dir = os.path.dirname(os.path.abspath(__file__))
     backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_file_dir)))
-    CHROMA_DOC_DB_PATH = os.path.join(backend_dir, "src", "database", "vector_db", "knowledge_base")
+    CHROMA_DOC_DB_PATH = os.path.join(backend_dir, "src", "database", "knowledge_base", "knowledge_base")
 
 print(f"Using CHROMA_DOC_DB_PATH: {CHROMA_DOC_DB_PATH}")
 MAX_TOKENS = 4095

@@ -14,8 +14,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from ..config.settings import settings
-from ..agent.orchestrator_agent.orchestrator_agent import orchestrator_assistant
-from ..agent.chat_agent.chat_agent import chat_assistant
+from ..agent.orchestrator_agent.orchestrator_agent import memory_orchestrator
 from ..agent.daily_digest_agent.daily_digest_agent import daily_digest_assistant
 from ..agent.scheduler_agent.scheduler_agent import scheduler_assistant
 from ..agent.ticketing_agent.ticketing_agent import ticketing_assistant
@@ -24,17 +23,18 @@ from ..database.models import get_db, Ticket, Customer
 
 
 class ChatAgentRequest(BaseModel):
-    message: str = Field(..., description="Orchestrator instruction (NOT raw customer text). E.g. 'Send a friendly confirmation asking for their order number.'")
-    host_company: str = Field(..., description="The name of the host company")
-    tone_and_manner: str = Field(..., description="The tone and manner for responses")
-    chat_id: Optional[str] = Field(None, description="Telegram chat ID if instruction involves a specific conversation or sending a message. Omit for aggregate analytics or internal tasks.")
-    company_config: Optional[Dict] = Field(None, description="Company configuration settings")
-    execute_plan: Optional[bool] = Field(None, description="(Deprecated) Ignored. Tool plans are always auto-executed now.")
-    iterative: Optional[bool] = Field(False, description="If true, run iterative plan->execute cycles.")
-    cycles: Optional[int] = Field(3, description="Max cycles when iterative=true.")
+    message: str = Field(..., description="Customer message to process")
+    telegram_chat_id: Optional[str] = Field(None, description="Telegram chat ID for memory context")
+    host_company: Optional[str] = Field("Kakak Agent", description="The name of the host company")
+    tone_and_manner: Optional[str] = Field(None, description="The tone and manner for responses")
+
+class MemoryChatRequest(BaseModel):
+    message: str = Field(..., description="Customer message")
+    chat_id: str = Field(..., description="Chat ID (used as user_id for memory)")
 
 class OrchestratorRequest(BaseModel):
     message: str = Field(..., description="Orchestrator instruction.")
+    chat_id: Optional[str] = Field(None, description="Chat ID for memory context")
     host_company: str = Field(..., description="The name of the host company")
     tone_and_manner: Optional[str] = Field(None, description="The tone and manner for responses (optional; will fallback to stored config)")
     company_config: Optional[Dict] = Field(None, description="Company configuration settings")
@@ -52,25 +52,51 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/chat_agent")
-async def handle_chat_agent(request: ChatAgentRequest):
-    """Return agent plan + executions. If iterative flag set, run iterative loop.
-    {
-    "message":"Send message saying hi",
-    "chat_id":"7734986853",
-    "host_company": "Company A",
-    "tone_and_manner": "Friendly and Professional"
-    }
+@router.post("/chat")
+async def chat_endpoint(request: MemoryChatRequest, db: Session = Depends(get_db)):
     """
-    if not request.chat_id:
-        raise HTTPException(status_code=400, detail="chat_id is a required field.")
+    Main chat endpoint with Mem0 memory integration using chat_id as user_id.
+    Processes customer messages with persistent memory context.
+    """
+    try:
+        # Use chat_id directly as user_id for Mem0 memory
+        chat_id = request.chat_id
+        
+        # Get or create customer record (for business data only, not memory)
+        customer = db.query(Customer).filter(Customer.telegram_chat_id == chat_id).first()
+        
+        if customer:
+            customer_id = customer.id
+            customer_name = customer.name
+        else:
+            # Create new customer record
+            customer_name = f"User_{chat_id}"
+            customer = Customer(
+                name=customer_name,
+                telegram_chat_id=chat_id
+            )
+            db.add(customer)
+            db.commit()
+            db.refresh(customer)
+            customer_id = customer.id
+            
+            # Store initial customer info in memory
+            memory_orchestrator.store_user_info(
+                chat_id, 
+                f"New customer: {customer_name}, chat_id: {chat_id}"
+            )
+            
+            logger.info(f"Created new customer {customer_id} for chat_id {chat_id}")
+        
+        # Process with memory-aware orchestrator
+        response = await memory_orchestrator.process_message(request.message, chat_id)
+        
+        return {"response": response, "chat_id": chat_id}
+        
+    except Exception as e:
+        logger.error(f"Chat endpoint error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process chat message")
 
-    return chat_assistant(
-        query=request.message,
-        chat_id=int(request.chat_id),
-        host_company=request.host_company,
-        tone_and_manner=request.tone_and_manner,
-    )
 
 @router.post("/daily_digest")
 async def handle_daily_digest(request: AgentQueryRequest):
@@ -79,10 +105,60 @@ async def handle_daily_digest(request: AgentQueryRequest):
 
 @router.post("/orchestrator_agent")
 async def handle_orchestrator_agent(request: OrchestratorRequest):
-    tone = request.tone_and_manner or settings.get_tone_and_manner()
-    enriched_query = f"Company: {request.host_company}\nTone: {tone}\nInstruction: {request.message}"
-    response = orchestrator_assistant(query=enriched_query)
-    return {"response": response}
+    try:
+        if request.chat_id:
+            # Use memory-aware orchestrator
+            response = await memory_orchestrator.process_message(request.message, request.chat_id)
+        else:
+            # Fallback to legacy orchestrator
+            tone = request.tone_and_manner or settings.get_tone_and_manner()
+            enriched_query = f"Company: {request.host_company}\nTone: {tone}\nInstruction: {request.message}"
+            response = await memory_orchestrator.process_message(enriched_query, "legacy_api")
+        
+        return {"response": response}
+    except Exception as e:
+        logger.error(f"Orchestrator agent error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process orchestrator request")
+
+# Memory management endpoints
+@router.get("/memory/{chat_id}")
+async def get_customer_memories(chat_id: str):
+    """Get all Mem0 memories for a chat_id."""
+    try:
+        memories = memory_orchestrator.get_user_memories(chat_id)
+        return {"chat_id": chat_id, "memories": memories}
+    except Exception as e:
+        logger.error(f"Error retrieving memories for {chat_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve memories")
+
+@router.post("/memory/{chat_id}")
+async def store_customer_memory(chat_id: str, request: dict):
+    """Manually store memory for a chat_id."""
+    try:
+        content = request.get("content", "")
+        if not content:
+            raise HTTPException(status_code=400, detail="Content is required")
+        
+        result = memory_orchestrator.store_user_info(chat_id, content)
+        return {"chat_id": chat_id, "result": result}
+    except Exception as e:
+        logger.error(f"Error storing memory for {chat_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to store memory")
+
+@router.delete("/memory/{chat_id}")
+async def clear_customer_memories(chat_id: str):
+    """Clear all memories for a chat_id."""
+    try:
+        # Note: Mem0 doesn't have a direct "clear all" action, so we'll list and delete
+        memories = memory_orchestrator.get_user_memories(chat_id)
+        if memories.get("memories"):
+            # This would need to be implemented based on Mem0's delete capabilities
+            logger.info(f"Would clear {len(memories['memories'])} memories for {chat_id}")
+        
+        return {"chat_id": chat_id, "message": "Memory clear requested"}
+    except Exception as e:
+        logger.error(f"Error clearing memories for {chat_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to clear memories")
 
 class SchedulerAgentRequest(BaseModel):
     query: str = Field(..., description="Natural language scheduling request")
@@ -104,7 +180,6 @@ async def handle_ticketing_agent(request: AgentQueryRequest):
 
 
 from ..database.models import get_db, Ticket, Customer, IncomingMessage
-from ..services.summarization_service import summarization_service
 
 
 @router.post("/telegram_webhook")
@@ -158,7 +233,6 @@ async def get_customer_summaries(db: Session = Depends(get_db)):
             "telegram_chat_id": customer.telegram_chat_id,
             "name": customer.name,
             "company_id": customer.company_id,
-            "conversation_summary": customer.conversation_summary,
             "created_at": customer.created_at.isoformat(),
             "updated_at": customer.updated_at.isoformat(),
         }

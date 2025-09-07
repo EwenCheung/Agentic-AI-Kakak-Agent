@@ -40,30 +40,6 @@ def get_open_tickets_summary() -> str:
     return " ".join(summary_parts)
 
 
-@tool
-def get_recent_high_priority_communications() -> str:
-    """
-    Retrieves a summary of recent high-priority communications.
-
-    Returns:
-        str: A summary of recent high-priority messages.
-    """
-    db: Session = next(get_db())
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    tomorrow_start = today_start + timedelta(days=1)
-
-    high_priority_tickets_today = db.query(Ticket).filter(
-        Ticket.priority == 'high',
-        Ticket.created_at >= today_start,
-        Ticket.created_at < tomorrow_start
-    ).all()
-
-    if not high_priority_tickets_today:
-        return "No new high-priority communications today."
-
-    communications_summary = [f"New high-priority ticket (ID: {t.id}): {t.issue}" for t in high_priority_tickets_today]
-    return "Recent high-priority communications:\n" + "\n".join(communications_summary)
-
 
 @tool
 async def get_upcoming_events():
