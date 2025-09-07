@@ -12,15 +12,12 @@ from ..ticketing_agent.ticketing_agent import ticketing_assistant
 
 
 @tool
-def orchestrator_assistant(query: str, company_name: str, tone_and_manner: str, phone_number: str) -> str:
+async def orchestrator_assistant(query: str) -> str:
     """
     An orchestrator assistant that delegates tasks to other agents.
 
     Args:
-        query (str): The user's query.
-        company_name (str): The name of the company.
-        tone_and_manner (str): The tone and manner to use in the response.
-        phone_number (str): The phone number of the user.
+        query (str): The user's query, which includes context like company name and tone.
 
     Returns:
         str: The agent's response.
@@ -43,6 +40,9 @@ def orchestrator_assistant(query: str, company_name: str, tone_and_manner: str, 
     )
 
 
-    response = orchestrator_agent(query)
+    result = await orchestrator_agent.invoke_async(query)
+
+    # The result is an AgentResult object, extract the final response text.
+    response = str(result)
     return response
 
