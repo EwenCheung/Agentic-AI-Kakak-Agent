@@ -26,17 +26,23 @@ class Settings(BaseSettings):
     # Raw environment-provided values (DB may override when accessed via getters)
     TELEGRAM_BOT_TOKEN: str | None = None
     TONE_AND_MANNER: str | None = "Friendly and Professional"
+    
+    # Web Search / Tavily API
+    TAVILY_API_KEY: str | None = None
 
     # Embeddings / Vector DB (for knowledge base study)
     EMBED_MODEL_ID: str | None = None
     TOKENIZER_MODEL_ID: str | None = None
     CHROMA_DOC_DB_PATH: str | None = "./src/database/knowledge_base/"
-    
+
     # Mem0 Configuration
     MEM0_LLM_PROVIDER: str | None = "aws_bedrock"
     MEM0_DATA_PATH: str | None = "./src/database/mem0_data"
     MEM0_EMBEDDER_PROVIDER: str | None = "aws_bedrock"
     MEM0_VECTOR_STORE_PROVIDER: str | None = "chroma" 
+    
+    # Tavily API Key for Web Search
+    TAVILY_API_KEY: str | None = None
     
     @cached_property
     def SESSION(self):
@@ -136,6 +142,7 @@ class Settings(BaseSettings):
     @property
     def GOOGLE_CLIENT_SECRET(self) -> str | None:
         return self.get_google_client_secret()
+
     @property
     def TONE_AND_MANNER_EFFECTIVE(self) -> str:
         return self.get_tone_and_manner()

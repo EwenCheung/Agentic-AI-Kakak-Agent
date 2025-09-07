@@ -6,7 +6,10 @@ uvicorn[standard]
 strands-agents
 strands-agents-tools
 strands-agents-builder
-# (remove strands + strands-tools unless specifically needed)
+
+# Web Search Tools
+aiohttp>=3.8.0
+rich>=13.0.0
 
 # Telegram Integration
 python-telegram-bot

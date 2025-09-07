@@ -8,6 +8,8 @@ from ...config.settings import settings
 from ..orchestrator_agent.orchestrator_system_prompt import ORCHESTRATOR_SYSTEM_PROMPT
 from ..scheduler_agent.scheduler_agent import scheduler_assistant
 from ..ticketing_agent.ticketing_agent import ticketing_assistant
+from ..web_search_agent.web_search_agent import web_search_assistant
+
 from .tools.knowledge_base_tools import knowledge_base_search
 from .tools.message_tools import send_message
 
@@ -116,6 +118,7 @@ class MemoryAwareOrchestratorAgent:
                 store_user_memory,
                 send_message,
                 knowledge_base_search,
+                web_search_assistant,
                 scheduler_assistant,
                 ticketing_assistant
             ]
