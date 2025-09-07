@@ -99,19 +99,19 @@ const ChannelLinking = () => {
   return (
     <div className="mt-4">
       <div className="flex items-center mb-2">
-        <div className="text-xl mr-2">Channel Configuration</div> {/* Changed title */}
+        <div className="text-xl mr-2">Configuration</div> {/* Changed title */}
         <img src={ChannelIcon} alt="" className="w-5 h-5" />
         <div className="ml-auto">
      
         </div>
       </div>
 
-      <div className="border border-black px-4 py-2 rounded-lg">
+      <div className="border border-black px-4 py-8 rounded-lg">
         <div className="flex flex-col items-center justify-center"> {/* Centered content */}
           <img src={TelegramIcon} className="w-16 mb-1" alt="Telegram" />
           Telegram
           <form onSubmit={handleChannelSubmit} className="flex flex-col items-center mt-2 w-full">
-            <div className="mb-2">
+            <div className="mx-auto mb-2">
               <label htmlFor="telegramBotId" className="block text-sm font-medium text-gray-700">
                 Telegram Bot ID:
               </label>
@@ -124,8 +124,8 @@ const ChannelLinking = () => {
                 required
               />
             </div>
-            <div className="mb-2">
-              <label htmlFor="clientSecretJsonContent" className="block text-sm font-medium text-gray-700">
+            <div className="my-2">
+              <label htmlFor="clientSecretJsonContent" className="mb-1 block text-sm font-medium text-gray-700">
                 Google Calendar Client Secret (Paste JSON content):
               </label>
               <textarea
@@ -139,7 +139,7 @@ const ChannelLinking = () => {
             </div>
             <button
               type="submit"
-              className="flex justify-center border border-black rounded-sm px-6 py-1 cursor-pointer mt-1 bg-blue-500 text-white hover:bg-blue-600"
+              className="flex justify-center border border-black rounded-md px-6 py-1 cursor-pointer mt-1 bg-blue-500 text-white hover:bg-blue-600"
             >
               Save Channel Config
             </button>
@@ -168,7 +168,7 @@ const ChannelLinking = () => {
               </select>
               <button
                 type="submit"
-                className="flex justify-center border border-black rounded-sm px-6 py-1 cursor-pointer bg-green-600 text-white hover:bg-green-700"
+                className="mt-2 flex justify-center border border-black rounded-md px-6 py-1 cursor-pointer bg-green-600 text-white hover:bg-green-700"
               >
                 Save Agent Config
               </button>
