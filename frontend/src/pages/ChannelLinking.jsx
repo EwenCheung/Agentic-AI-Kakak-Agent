@@ -2,6 +2,8 @@ import ChannelIcon from "../assets/channel-linking.png";
 import TelegramIcon from "../assets/telegram.png";
 import GoogleCalendarIcon from "../assets/google-calendar.png";
 import React, { useState, useEffect } from "react";
+import Toast from "../components/Toast";
+import useSuccessNotification from "../hooks/useSuccessNotification";
 
 const ChannelLinking = () => {
   const [telegramBotId, setTelegramBotId] = useState("");
@@ -10,6 +12,10 @@ const ChannelLinking = () => {
   const [message, setMessage] = useState("");
   const [agentMessage, setAgentMessage] = useState("");
   const [currentTone, setCurrentTone] = useState("");
+  
+  // Toast notification state and hook
+  const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
+  const { showSuccess, showError } = useSuccessNotification(setToast);
 
   useEffect(() => {
     (async () => {
@@ -30,6 +36,7 @@ const ChannelLinking = () => {
 
     if (!telegramBotId) {
       setMessage("Please enter Telegram Bot ID.");
+      showError('Missing Information', 'Please enter Telegram Bot ID.');
       return;
     }
 
@@ -38,7 +45,9 @@ const ChannelLinking = () => {
       try {
         JSON.parse(clientSecretJsonContent);
       } catch (error) {
-        setMessage("Invalid JSON for Google Calendar Client Secret.");
+        const errorMsg = "Invalid JSON for Google Calendar Client Secret.";
+        setMessage(errorMsg);
+        showError('Invalid JSON', errorMsg);
         return;
       }
     }
@@ -60,15 +69,21 @@ const ChannelLinking = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage(data.message || "Channel configuration saved.");
+        const successMsg = data.message || "Channel configuration saved.";
+        setMessage(successMsg);
         setTelegramBotId("");
         setClientSecretJsonContent("");
+        showSuccess('Configuration Saved', 'Channel configuration has been successfully saved.');
       } else {
-        setMessage(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail) || "Failed to save configuration.");
+        const errorMsg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail) || "Failed to save configuration.";
+        setMessage(errorMsg);
+        showError('Configuration Failed', errorMsg);
       }
     } catch (error) {
       console.error("Error configuring Telegram channel:", error);
-      setMessage("An error occurred during configuration.");
+      const errorMsg = "An error occurred during configuration.";
+      setMessage(errorMsg);
+      showError('Configuration Error', errorMsg);
     }
   };
 
@@ -84,16 +99,22 @@ const ChannelLinking = () => {
       });
       const data = await resp.json();
       if (resp.ok) {
-        setAgentMessage(data.message || 'Agent configuration updated.');
+        const successMsg = data.message || 'Agent configuration updated.';
+        setAgentMessage(successMsg);
         if (data.tone_and_manner) {
           setCurrentTone(data.tone_and_manner);
           setToneAndManner("");
         }
+        showSuccess('Agent Updated', 'Agent tone and manner configuration has been successfully updated.');
       } else {
-        setAgentMessage(data.detail || 'Failed to update agent configuration.');
+        const errorMsg = data.detail || 'Failed to update agent configuration.';
+        setAgentMessage(errorMsg);
+        showError('Update Failed', errorMsg);
       }
     } catch (err) {
-      setAgentMessage('Error updating agent configuration.');
+      const errorMsg = 'Error updating agent configuration.';
+      setAgentMessage(errorMsg);
+      showError('Configuration Error', errorMsg);
     }
   };
 
@@ -216,6 +237,14 @@ const ChannelLinking = () => {
           </div>
         </div>
       </div>
+      {toast.show && (
+        <Toast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+      )}
     </div>
   );
 };

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import DashBoardIcon from "../assets/dashboard.png";
-import { get } from "../services/api"; // adjust if your API helper is elsewhere
+import { get, toggleTicketStatus, deleteTicket, getAllTickets } from "../services/api"; // adjust if your API helper is elsewhere
+import { DeleteIcon, CheckIcon } from "../components/Icons";
+import Toast from "../components/Toast";
+import useSuccessNotification from "../hooks/useSuccessNotification";
 
 // local spinner — no external package required
 const Spinner = ({ label = "Loading..." }) => (
@@ -18,10 +21,76 @@ const DashboardPage = () => {
   const [openTickets, setOpenTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
   const [errorTickets, setErrorTickets] = useState(null);
+  const [processingTickets, setProcessingTickets] = useState(new Set()); // Track which tickets are being processed
 
   const [dailyDigest, setDailyDigest] = useState("");
   const [loadingDigest, setLoadingDigest] = useState(true);
   const [errorDigest, setErrorDigest] = useState(null);
+
+  // Toast notification state and hook
+  const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
+  const { showSuccess, showError } = useSuccessNotification(setToast);
+
+    const fetchOpenTickets = async () => {
+      try {
+        setLoadingTickets(true);
+        const data = await getAllTickets(); // Get all tickets instead of just open ones
+        setOpenTickets(data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+        setErrorTickets("Failed to load tickets.");
+      } finally {
+        setLoadingTickets(false);
+      }
+    };  const handleToggleTicketStatus = async (ticketId) => {
+    setProcessingTickets(prev => new Set([...prev, ticketId]));
+    try {
+      const response = await toggleTicketStatus(ticketId);
+      // Refresh the tickets list to show updated status
+      await fetchOpenTickets();
+      
+      // Show success message based on the action
+      if (response.new_status === 'closed') {
+        showSuccess('Ticket closed successfully!');
+      } else {
+        showSuccess('Ticket reopened successfully!');
+      }
+    } catch (error) {
+      console.error("Error toggling ticket status:", error);
+      setErrorTickets("Failed to toggle ticket status.");
+      showError("Failed to toggle ticket status. Please try again.");
+    } finally {
+      setProcessingTickets(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(ticketId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId) => {
+    if (!window.confirm("Are you sure you want to permanently delete this ticket? This action cannot be undone.")) {
+      return;
+    }
+    
+    setProcessingTickets(prev => new Set([...prev, ticketId]));
+    try {
+      await deleteTicket(ticketId);
+      // Refresh the tickets list to remove the deleted ticket
+      await fetchOpenTickets();
+      showSuccess('Ticket deleted successfully!');
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      setErrorTickets("Failed to delete ticket.");
+      showError("Failed to delete ticket. Please try again.");
+    } finally {
+      setProcessingTickets(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(ticketId);
+        return newSet;
+      });
+    }
+  };
 
   useEffect(() => {
     document.title = "Kakak Agent - Dashboard";
@@ -31,27 +100,18 @@ const DashboardPage = () => {
         const data = await get("/upcoming_events");
         if (data.events) {
           setUpcomingEvents(data.events);
+        } else if (data.message && data.message.includes("No upcoming events found")) {
+          // Handle "No upcoming events found" as normal state, not error
+          setUpcomingEvents([]);
+          setErrorEvents(null);
         } else if (data.message) {
-          setErrorEvents(data.message); // Handle cases like "No upcoming events found." or error messages
+          setErrorEvents(data.message); // Handle actual error messages
         }
       } catch (error) {
         console.error("Error fetching upcoming events:", error);
         setErrorEvents("Failed to load upcoming events.");
       } finally {
         setLoadingEvents(false);
-      }
-    };
-
-    const fetchOpenTickets = async () => {
-      try {
-        setLoadingTickets(true);
-        const data = await get("/dashboard/tickets/open");
-        setOpenTickets(data);
-      } catch (error) {
-        console.error("Error fetching open tickets:", error);
-        setErrorTickets("Failed to load open tickets.");
-      } finally {
-        setLoadingTickets(false);
       }
     };
 
@@ -69,7 +129,7 @@ const DashboardPage = () => {
     };
 
     fetchUpcomingEvents();
-    fetchOpenTickets();
+    fetchOpenTickets(); // Use the new function
     fetchDailyDigest();
   }, []); // Empty dependency array means these effects run once on mount
 
@@ -152,7 +212,7 @@ const DashboardPage = () => {
               {loadingTickets && <p className="text-responsive-sm">Loading tickets...</p>}
               {errorTickets && <p className="text-red-500 text-responsive-sm">{errorTickets}</p>}
               {!loadingTickets && !errorTickets && openTickets.length === 0 && (
-                <p className="text-responsive-sm">No open tickets found.</p>
+                <p className="text-responsive-sm">No tickets found.</p>
               )}
               {!loadingTickets && !errorTickets && openTickets.length > 0 && (
                 <div className="table-responsive">
@@ -177,6 +237,12 @@ const DashboardPage = () => {
                         >
                           Status
                         </th>
+                        <th
+                          scope="col"
+                          className="px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -195,7 +261,62 @@ const DashboardPage = () => {
                             </span>
                           </td>
                           <td className="px-2 md:px-6 py-4 text-responsive-xs text-gray-500 hidden sm:table-cell">
-                            <div className="break-words">{ticket.status}</div>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              ticket.status === 'open' ? 'bg-green-100 text-green-800' :
+                              ticket.status === 'closed' ? 'bg-gray-100 text-gray-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {ticket.status}
+                            </span>
+                          </td>
+                          <td className="px-2 md:px-6 py-4 text-responsive-xs text-gray-500">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleToggleTicketStatus(ticket.id)}
+                                disabled={processingTickets.has(ticket.id)}
+                                className={`inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed touch-target ${
+                                  ticket.status === 'open' 
+                                    ? 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500'
+                                    : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                                }`}
+                                title={ticket.status === 'open' ? 'Close ticket' : 'Reopen ticket'}
+                              >
+                                {processingTickets.has(ticket.id) ? (
+                                  <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-white" />
+                                ) : (
+                                  <>
+                                    {ticket.status === 'open' ? (
+                                      <>
+                                        <CheckIcon className="w-3 h-3 mr-1" />
+                                        <span className="hidden sm:inline">Close</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <span className="hidden sm:inline">Open</span>
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTicket(ticket.id)}
+                                disabled={processingTickets.has(ticket.id)}
+                                className="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+                                title="Delete ticket permanently"
+                              >
+                                {processingTickets.has(ticket.id) ? (
+                                  <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-white" />
+                                ) : (
+                                  <>
+                                    <DeleteIcon className="w-3 h-3 mr-1" />
+                                    <span className="hidden sm:inline">Delete</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -226,6 +347,14 @@ const DashboardPage = () => {
 
   {/* Knowledge Base Upload moved to its own page (/knowledge-base-upload) */}
       </div>
+      {toast.show && (
+        <Toast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+      )}
     </div>
   );
 };

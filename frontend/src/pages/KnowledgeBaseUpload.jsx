@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import DownloadIcon from "../assets/download.png";
 import DeleteIcon from "../assets/delete.png";
+import Toast from "../components/Toast";
+import useSuccessNotification from "../hooks/useSuccessNotification";
 
 const KnowledgeBaseUpload = () => {
   const [files, setFiles] = useState([]); // File objects
@@ -13,6 +15,10 @@ const KnowledgeBaseUpload = () => {
   const [studyError, setStudyError] = useState(null);
   const [polling, setPolling] = useState(null);
   const [deletingIds, setDeletingIds] = useState([]);
+  
+  // Toast notification state and hook
+  const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
+  const { showSuccess, showError } = useSuccessNotification(setToast);
 
   const loadDocuments = async () => {
     try {
@@ -47,6 +53,13 @@ const KnowledgeBaseUpload = () => {
             clearInterval(id);
             setPolling(null);
             loadDocuments();
+            
+            // Show success notification when study completes
+            if (data.status === "completed") {
+              showSuccess('Bot Study Complete', 'The bot has successfully learned from your documents.');
+            } else if (data.status === "error") {
+              showError('Bot Study Failed', data.error || 'An error occurred during the study process.');
+            }
           }
         }
       } catch (e) {
@@ -103,9 +116,12 @@ const KnowledgeBaseUpload = () => {
       );
       if (resp.ok) {
         await loadDocuments();
+        showSuccess('File Deleted', 'The document has been successfully removed from the knowledge base.');
+      } else {
+        showError('Delete Failed', 'Failed to delete the document. Please try again.');
       }
     } catch (e) {
-      /* ignore */
+      showError('Delete Error', 'An error occurred while deleting the document.');
     } finally {
       setDeletingIds((prev) => prev.filter((x) => x !== id));
     }
@@ -146,15 +162,18 @@ const KnowledgeBaseUpload = () => {
         setDescriptions({});
         e.target.reset();
         loadDocuments();
+        showSuccess('Files Uploaded', `${files.length} document(s) have been successfully uploaded to the knowledge base.`);
       } else {
-        setMessage(
-          typeof data.detail === "string"
-            ? data.detail
-            : JSON.stringify(data.detail) || "Failed to upload documents."
-        );
+        const errorMessage = typeof data.detail === "string"
+          ? data.detail
+          : JSON.stringify(data.detail) || "Failed to upload documents.";
+        setMessage(errorMessage);
+        showError('Upload Failed', errorMessage);
       }
     } catch (err) {
-      setMessage("An error occurred during documents upload.");
+      const errorMessage = "An error occurred during documents upload.";
+      setMessage(errorMessage);
+      showError('Upload Error', errorMessage);
     } finally {
       setUploading(false);
     }
@@ -301,6 +320,14 @@ const KnowledgeBaseUpload = () => {
           </p>
         )}
       </div>
+      {toast.show && (
+        <Toast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+      )}
     </div>
   );
 };
