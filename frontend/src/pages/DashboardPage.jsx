@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from "react";
-import Header from "../components/Header";
 import DashBoardIcon from "../assets/dashboard.png";
-import ChatBot from "../components/ChatBot";
-import { get } from "../services/api"; // Import the get function
+import { get } from "../services/api"; // adjust if your API helper is elsewhere
+
+// local spinner — no external package required
+const Spinner = ({ label = "Loading..." }) => (
+  <div className="flex items-center space-x-2">
+    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-gray-900" />
+    <span className="text-sm text-gray-700">{label}</span>
+  </div>
+);
 
 const DashboardPage = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
@@ -17,9 +23,8 @@ const DashboardPage = () => {
   const [loadingDigest, setLoadingDigest] = useState(true);
   const [errorDigest, setErrorDigest] = useState(null);
 
-  // Knowledge base upload state removed (moved to dedicated page)
-
   useEffect(() => {
+    document.title = "Kakak Agent - Dashboard";
     const fetchUpcomingEvents = async () => {
       try {
         setLoadingEvents(true);
@@ -79,55 +84,121 @@ const DashboardPage = () => {
         </div>
 
         <div className="border border-black px-4 py-2 rounded-lg">
-          <p>Daily Digest</p>
+          <p className="text-lg">Daily Digest</p>
           <hr className="border-t border-gray-500 mt-2"></hr>
-          <div className="grid grid-cols-1 grid-rows-3 gap-4">
+          <div className="grid grid-cols-1 grid-rows-auto gap-4">
             <div>
-              <div className="mt-2">Upcoming Events</div>
-              {loadingEvents && <p>Loading upcoming events...</p>}
+              <div className="my-2 text-lg">Upcoming Events</div>
+              {loadingEvents && <Spinner />}
               {errorEvents && <p className="text-red-500">{errorEvents}</p>}
               {!loadingEvents && !errorEvents && upcomingEvents.length === 0 && (
                 <p>No upcoming events found.</p>
               )}
               {!loadingEvents && !errorEvents && upcomingEvents.length > 0 && (
-                <ul>
-                  {upcomingEvents.map((event) => (
-                    <li key={event.id}>
-                      <strong>{event.summary}</strong>:{" "}
-                      {new Date(event.start.dateTime || event.start.date).toLocaleString()} -{" "}
-                      {new Date(event.end.dateTime || event.end.date).toLocaleString()}
-                    </li>
-                  ))}
-                </ul>
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                      >
+                        Event
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                      >
+                        Start
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                      >
+                        End
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {upcomingEvents.map((event) => (
+                      <tr key={event.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {event.summary}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(
+                            event.start.dateTime || event.start.date
+                          ).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(
+                            event.end.dateTime || event.end.date
+                          ).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
             <div>
-              <div className="mt-4">Tickets</div>
+              <div className="mt-4 text-lg">Tickets</div>
               {loadingTickets && <p>Loading tickets...</p>}
               {errorTickets && <p className="text-red-500">{errorTickets}</p>}
               {!loadingTickets && !errorTickets && openTickets.length === 0 && (
                 <p>No open tickets found.</p>
               )}
               {!loadingTickets && !errorTickets && openTickets.length > 0 && (
-                <ul>
-                  {openTickets.map((ticket) => (
-                    <li key={ticket.id}>
-                      <strong>{ticket.issue}</strong> (Priority: {ticket.priority}, Status: {ticket.status})
-                    </li>
-                  ))}
-                </ul>
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Issue
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Priority
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {openTickets.map((ticket) => (
+                      <tr key={ticket.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {ticket.issue}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {ticket.priority}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {ticket.status}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
 
             <div>
-              <div className="mt-4">Insights</div>
+              <div className="mt-4 text-lg">Insights</div>
               {loadingDigest && <p>Loading insights...</p>}
               {errorDigest && <p className="text-red-500">{errorDigest}</p>}
               {!loadingDigest && !errorDigest && !dailyDigest && (
                 <p>No insights available.</p>
               )}
               {!loadingDigest && !errorDigest && dailyDigest && (
-                <p>{dailyDigest}</p>
+                <div style={{ whiteSpace: 'pre-wrap' }}>{dailyDigest}</div>
               )}
             </div>
           </div>
@@ -135,7 +206,6 @@ const DashboardPage = () => {
 
   {/* Knowledge Base Upload moved to its own page (/knowledge-base-upload) */}
       </div>
-      <ChatBot/>
     </div>
   );
 };
