@@ -16,6 +16,14 @@ from .tools.calendar_tools import (
     search_events,
     list_calendars
 )
+from .tools.time_handler import (
+    get_current_time_with_timezone,
+    convert_datetime_timezone,
+    validate_and_normalize_datetime,
+    get_timezone_info,
+    list_common_timezones,
+    create_calendar_event_times
+)
 
 @tool
 def scheduler_assistant(query: str) -> str:
@@ -42,6 +50,12 @@ IMPORTANT: Do NOT echo this context back to the user; respond directly.
         system_prompt=system_with_context,
         tools=[
             current_time,
+            get_current_time_with_timezone,
+            convert_datetime_timezone,
+            validate_and_normalize_datetime,
+            get_timezone_info,
+            list_common_timezones,
+            create_calendar_event_times,
             check_availability,
             schedule_event,
             get_empty_slots,
