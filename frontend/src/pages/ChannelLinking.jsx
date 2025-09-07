@@ -1,5 +1,6 @@
 import ChannelIcon from "../assets/channel-linking.png";
 import TelegramIcon from "../assets/telegram.png";
+import GoogleCalendarIcon from "../assets/google-calendar.png";
 import React, { useState, useEffect } from "react";
 
 const ChannelLinking = () => {
@@ -125,8 +126,8 @@ const ChannelLinking = () => {
               />
             </div>
             <div className="my-2">
-              <label htmlFor="clientSecretJsonContent" className="mb-1 block text-sm font-medium text-gray-700">
-                Google Calendar Client Secret (Paste JSON content):
+              <label htmlFor="clientSecretJsonContent" className=" flex mb-1 block text-sm font-medium text-gray-700">
+               <img src={GoogleCalendarIcon} alt="" className="h-4 mr-1" /> Google Cmalendar Client Secret (Paste JSON content):
               </label>
               <textarea
                 id="clientSecretJsonContent"
