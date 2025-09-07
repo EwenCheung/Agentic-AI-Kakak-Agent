@@ -17,7 +17,7 @@ async def chat_assistant(
     query: str,
     chat_id: int,
     host_company: str = "Company A",
-    tone_and_manner: str = "Friendly and Professional",
+    tone_and_manner: Optional[str] = None,
     configuration: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Execution agent for orchestrator instructions (NOT direct end-user freeform input).
@@ -31,10 +31,12 @@ async def chat_assistant(
     )
 
     # Avoid Python str.format consuming JSON braces in the prompt by doing simple placeholder replacement
+    # Always resolve latest tone if not explicitly passed
+    effective_tone = tone_and_manner or settings.get_tone_and_manner()
     formatted_prompt = (
         CHAT_SYSTEM_PROMPT
         .replace("{host_company}", host_company)
-        .replace("{tone_and_manner}", tone_and_manner)
+        .replace("{tone_and_manner}", effective_tone)
     )
 
     print("formatted_prompt", formatted_prompt)

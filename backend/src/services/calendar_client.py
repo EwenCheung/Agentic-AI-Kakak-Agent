@@ -15,6 +15,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+import tempfile # Added for temporary file creation
+
 from ..config.settings import settings
 
 # Set up logging
@@ -22,12 +24,10 @@ logger = logging.getLogger(__name__)
 
 def get_calendar_status() -> Dict[str, Any]:
     """Check if Google Calendar is configured and ready."""
-    creds_path = settings.GOOGLE_CALENDAR_CREDENTIALS_PATH
-    if not creds_path:
-        return {"configured": False, "ready": False, "reason": "Missing GOOGLE_CALENDAR_CREDENTIALS_PATH"}
-    
-    if not os.path.exists(creds_path):
-        return {"configured": True, "ready": False, "reason": f"Credentials file not found at: {creds_path}"}
+    # Check if client secret is available in DB or .env
+    client_secret_content = settings.get_google_client_secret()
+    if not client_secret_content:
+        return {"configured": False, "ready": False, "reason": "Google Calendar client secret not found in database or .env."} # Updated message
         
     return {"configured": True, "ready": True, "reason": "OK"}
 
@@ -52,7 +52,7 @@ class GoogleCalendarClient:
         """
         creds = None
         token_path = "token.json"
-        creds_path = settings.GOOGLE_CALENDAR_CREDENTIALS_PATH
+        # creds_path = settings.GOOGLE_CALENDAR_CREDENTIALS_PATH # Removed
 
         if os.path.exists(token_path):
             creds = Credentials.from_authorized_user_file(token_path, SCOPES)
@@ -61,8 +61,20 @@ class GoogleCalendarClient:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
-                creds = flow.run_local_server(port=0)
+                client_secret_content = settings.get_google_client_secret()
+                if not client_secret_content:
+                    raise Exception("Google Calendar client secret not found in database. Please configure it.")
+                
+                # Write client secret to a temporary file
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
+                    temp_file.write(client_secret_content)
+                    temp_file_path = temp_file.name
+                
+                try:
+                    flow = InstalledAppFlow.from_client_secrets_file(temp_file_path, SCOPES)
+                    creds = flow.run_local_server(port=0)
+                finally:
+                    os.remove(temp_file_path) # Clean up temporary file
             
             with open(token_path, "w") as token:
                 token.write(creds.to_json())
