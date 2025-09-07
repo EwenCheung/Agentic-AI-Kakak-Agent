@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     EMBED_MODEL_ID: str | None = None
     TOKENIZER_MODEL_ID: str | None = None
     CHROMA_DOC_DB_PATH: str | None = "./src/database/knowledge_base/"
-
+    
     # Mem0 Configuration
     MEM0_LLM_PROVIDER: str | None = "aws_bedrock"
     MEM0_DATA_PATH: str | None = "./src/database/mem0_data"

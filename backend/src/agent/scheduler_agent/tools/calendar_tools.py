@@ -1,5 +1,4 @@
-
-"""Google Calendar tool functions exposed to the scheduler agent."""
+"""Google Calendar tool functions exposed to the scheduler agent - simplified approach."""
 
 from strands import tool
 from .time_handler import timezone_handler
@@ -24,7 +23,7 @@ def check_availability(date: str, timezone_name: str = "Asia/Singapore") -> str:
             return f"Error: Invalid timezone '{timezone_name}'. Please use IANA timezone names like 'Asia/Singapore'."
         
         client = get_calendar_client()
-        result = client.list_events(date)
+        result = client.list_events(date, user_id=None)  # Remove user_id requirement
         
         return f"Events for {date} in {timezone_name}: {result}"
         
@@ -40,7 +39,7 @@ def schedule_event(
     description: str | None = None,
     timezone_name: str = "Asia/Singapore"
 ) -> str:
-    """Create a calendar event with accurate timezone handling.
+    """Create a calendar event and return the Event ID for future updates/deletions.
 
     Args:
         title: Event title
@@ -50,12 +49,12 @@ def schedule_event(
         timezone_name: Timezone for the event (IANA format, e.g., 'Asia/Singapore')
     
     Returns:
-        Success message or error details
+        Success message with Event ID for future reference
     """
     try:
-        # Normalize datetime strings with proper timezone handling
-        normalized_start = timezone_handler.normalize_datetime(start_time, timezone_name)
-        normalized_end = timezone_handler.normalize_datetime(end_time, timezone_name)
+        # Normalize datetime strings with timezone-naive format (preferred for Google Calendar)
+        normalized_start = timezone_handler.normalize_datetime_with_timezone(start_time, timezone_name)
+        normalized_end = timezone_handler.normalize_datetime_with_timezone(end_time, timezone_name)
         
         client = get_calendar_client()
         result = client.create_event(
@@ -63,9 +62,11 @@ def schedule_event(
             start_datetime=normalized_start,
             end_datetime=normalized_end,
             description=description,
+            user_id=None,  # Remove user_id requirement
+            timezone=timezone_name  # Pass timezone to calendar client
         )
         
-        return f"Event '{title}' scheduled successfully from {normalized_start} to {normalized_end} in {timezone_name}. {result}"
+        return f"✅ Event '{title}' scheduled successfully from {normalized_start} to {normalized_end} in {timezone_name}.\n\n📝 {result}\n\n⚠️ IMPORTANT: Save the Event ID above for future updates or deletions!"
         
     except Exception as e:
         return f"Error scheduling event: {str(e)}"
@@ -73,41 +74,23 @@ def schedule_event(
 
 @tool
 def list_events(date: str) -> str:
+    """List all events on a given date."""
     client = get_calendar_client()
-    return client.list_events(date)
+    return client.list_events(date, user_id=None)
 
 
 @tool
-def get_empty_slots(date: str, duration_minutes: int = 60) -> str:
-    """Return events for date and instruct model to derive free slots."""
-    events_result = list_events(date)
-    if "No upcoming events found." in events_result:
-        return f"Entire day {date} is available (no events scheduled)."
-    return (
-        f"Events for {date}:\n{events_result}\n\n"
-        f"Analyze these events to find free slots of {duration_minutes} minutes or more."
-    )
-
-
-@tool
-def cancel_event(event_id: str) -> str:  # alias for delete_event
-    client = get_calendar_client()
-    return client.delete_event(event_id)
-
-
-@tool
-def get_event_details(event_id: str) -> str:
-    """
-    Retrieves comprehensive details about a specific calendar event.
-
+def cancel_event(event_id: str) -> str:
+    """Cancel/delete an event using its Event ID.
+    
     Args:
-        event_id (str): The ID of the event to retrieve details for.
-
+        event_id: The Event ID provided when the event was created
+    
     Returns:
-        str: Detailed information about the event.
+        Confirmation of cancellation
     """
     client = get_calendar_client()
-    return client.get_event_details(event_id)
+    return client.delete_event(event_id, user_id=None)
 
 
 @tool
@@ -120,13 +103,13 @@ def update_event(
     timezone_name: str = "Asia/Singapore"
 ) -> str:
     """
-    Updates an existing calendar event with timezone-aware datetime handling.
+    Updates an existing calendar event using its Event ID.
 
     Args:
-        event_id (str): The ID of the event to update.
+        event_id (str): The Event ID provided when the event was created.
         title (str, optional): The new title for the event.
-        start_time (str, optional): The new start time (ISO format with timezone handling).
-        end_time (str, optional): The new end time (ISO format with timezone handling).
+        start_time (str, optional): The new start time (flexible format: '4pm', '16:00', 'Sep 9', '2024-01-15T14:00:00').
+        end_time (str, optional): The new end time (flexible format: '5pm', '17:00', '2024-01-15T15:00:00').
         description (str, optional): The new description for the event.
         timezone_name (str): Timezone for datetime interpretation (IANA format).
 
@@ -134,18 +117,60 @@ def update_event(
         str: Confirmation message indicating the event has been updated.
     """
     try:
-        # Normalize datetime strings if provided
+        # Get the existing event first to preserve details
+        client = get_calendar_client()
+        existing_result = client.service.events().get(calendarId="primary", eventId=event_id).execute()
+        
+        # Parse existing start and end times
+        existing_start = existing_result.get('start', {}).get('dateTime')
+        existing_end = existing_result.get('end', {}).get('dateTime')
+        
         normalized_start = None
         normalized_end = None
         
         if start_time:
-            normalized_start = timezone_handler.normalize_datetime(start_time, timezone_name)
+            # If user provides just time (like "4pm"), combine with existing date
+            if _is_time_only(start_time):
+                if existing_start:
+                    # Extract date from existing event, combine with new time
+                    existing_date = existing_start.split('T')[0]  # Get YYYY-MM-DD part
+                    new_datetime = f"{existing_date}T{_parse_time_to_24h(start_time)}"
+                    normalized_start = timezone_handler.normalize_datetime_with_timezone(new_datetime, timezone_name)
+                else:
+                    # Fallback to today if no existing start time
+                    from datetime import date
+                    today = date.today().isoformat()
+                    new_datetime = f"{today}T{_parse_time_to_24h(start_time)}"
+                    normalized_start = timezone_handler.normalize_datetime_with_timezone(new_datetime, timezone_name)
+            else:
+                # Full datetime or date provided
+                normalized_start = timezone_handler.normalize_datetime_with_timezone(start_time, timezone_name)
         
         if end_time:
-            normalized_end = timezone_handler.normalize_datetime(end_time, timezone_name)
+            # Similar logic for end time
+            if _is_time_only(end_time):
+                if existing_end:
+                    existing_date = existing_end.split('T')[0]
+                    new_datetime = f"{existing_date}T{_parse_time_to_24h(end_time)}"
+                    normalized_end = timezone_handler.normalize_datetime_with_timezone(new_datetime, timezone_name)
+                else:
+                    from datetime import date
+                    today = date.today().isoformat()
+                    new_datetime = f"{today}T{_parse_time_to_24h(end_time)}"
+                    normalized_end = timezone_handler.normalize_datetime_with_timezone(new_datetime, timezone_name)
+            else:
+                normalized_end = timezone_handler.normalize_datetime_with_timezone(end_time, timezone_name)
         
         client = get_calendar_client()
-        result = client.update_event(event_id, title, normalized_start, normalized_end, description)
+        result = client.update_event(
+            event_id, 
+            title, 
+            normalized_start, 
+            normalized_end, 
+            description, 
+            user_id=None,
+            timezone=timezone_name
+        )
         
         update_details = []
         if title:
@@ -157,34 +182,60 @@ def update_event(
         if description:
             update_details.append(f"description: {description}")
         
-        return f"Event {event_id} updated successfully ({', '.join(update_details)}) in timezone {timezone_name}. {result}"
+        return f"✅ Event {event_id} updated successfully ({', '.join(update_details)}) in timezone {timezone_name}.\n\n📝 {result}"
         
     except Exception as e:
         return f"Error updating event: {str(e)}"
 
 
-@tool
-def search_events(query: str) -> str:
-    """
-    Searches for calendar events by a text query.
-
-    Args:
-        query (str): The text query to search for.
-
-    Returns:
-        str: A summary of events matching the query.
-    """
-    client = get_calendar_client()
-    return client.search_events(query)
+def _is_time_only(time_str: str) -> bool:
+    """Check if the input is just a time (like '4pm', '16:00') rather than a full datetime."""
+    import re
+    time_patterns = [
+        r'^\d{1,2}:\d{2}\s*(am|pm)$',   # 4:30pm
+        r'^\d{1,2}\s*(am|pm)$',         # 4pm
+        r'^\d{1,2}:\d{2}$',             # 16:30
+        r'^\d{1,2}$',                   # 16
+    ]
+    time_str_clean = time_str.lower().strip()
+    return any(re.match(pattern, time_str_clean) for pattern in time_patterns)
 
 
-@tool
-def list_calendars() -> str:
-    """
-    Lists all available calendars.
-
-    Returns:
-        str: A list of calendars.
-    """
-    client = get_calendar_client()
-    return client.list_calendars()
+def _parse_time_to_24h(time_str: str) -> str:
+    """Convert time string to 24-hour format HH:MM."""
+    import re
+    time_str_clean = time_str.lower().strip()
+    
+    # 4:30pm -> 16:30
+    match = re.match(r'^(\d{1,2}):(\d{2})\s*(am|pm)$', time_str_clean)
+    if match:
+        hour, minute, period = int(match.group(1)), int(match.group(2)), match.group(3)
+        if period == 'pm' and hour != 12:
+            hour += 12
+        elif period == 'am' and hour == 12:
+            hour = 0
+        return f"{hour:02d}:{minute:02d}:00"
+    
+    # 4pm -> 16:00
+    match = re.match(r'^(\d{1,2})\s*(am|pm)$', time_str_clean)
+    if match:
+        hour, period = int(match.group(1)), match.group(2)
+        if period == 'pm' and hour != 12:
+            hour += 12
+        elif period == 'am' and hour == 12:
+            hour = 0
+        return f"{hour:02d}:00:00"
+    
+    # 16:30 -> 16:30:00
+    match = re.match(r'^(\d{1,2}):(\d{2})$', time_str_clean)
+    if match:
+        hour, minute = int(match.group(1)), int(match.group(2))
+        return f"{hour:02d}:{minute:02d}:00"
+    
+    # 16 -> 16:00:00
+    match = re.match(r'^(\d{1,2})$', time_str_clean)
+    if match:
+        hour = int(match.group(1))
+        return f"{hour:02d}:00:00"
+    
+    return "12:00:00"  # Default fallback

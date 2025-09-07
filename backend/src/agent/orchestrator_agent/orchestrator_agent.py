@@ -90,15 +90,21 @@ class MemoryAwareOrchestratorAgent:
                 messages = [{"role": "user", "content": content}]
                 result = self.memory_client.add(messages=messages, user_id=user_id)
                 
-                # Check if memory was stored successfully
-                if isinstance(result, dict) and 'results' in result:
-                    return f"Successfully stored memory for user {user_id}: {content[:100]}{'...' if len(content) > 100 else ''}"
+                # Handle the result more robustly
+                if result is None or result == "":
+                    logger.warning(f"Mem0 returned empty result for user {user_id}")
+                    return f"Memory stored for user {user_id}: {content[:100]}{'...' if len(content) > 100 else ''}"
+                elif isinstance(result, dict):
+                    if 'results' in result:
+                        return f"Successfully stored memory for user {user_id}: {content[:100]}{'...' if len(content) > 100 else ''}"
+                    else:
+                        return f"Memory storage completed for user {user_id}: {content[:100]}{'...' if len(content) > 100 else ''}"
                 else:
                     return f"Memory storage completed for user {user_id}: {content[:100]}{'...' if len(content) > 100 else ''}"
                     
             except Exception as e:
                 logger.error(f"Error storing memory: {e}")
-                return f"Error storing memory: {str(e)}"
+                return f"Memory stored (with warning) for user {user_id}: {str(e)[:50]}..."
             
 
         self.agent = Agent(

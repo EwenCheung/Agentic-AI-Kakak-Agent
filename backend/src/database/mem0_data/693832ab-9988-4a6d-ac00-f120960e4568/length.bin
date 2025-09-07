@@ -1,672 +1,833 @@
-bType",
-          "documentation":"<p>Specifies whether the evaluation job is automated or human-based.</p>"
+:"GuardrailWordPolicyConfig",
+          "documentation":"<p>The word policy you configure for the guardrail.</p>"
         },
-        "evaluationTaskTypes":{
-          "shape":"EvaluationTaskTypes",
-          "documentation":"<p>The type of task for model evaluation.</p>"
+        "sensitiveInformationPolicyConfig":{
+          "shape":"GuardrailSensitiveInformationPolicyConfig",
+          "documentation":"<p>The sensitive information policy to configure for the guardrail.</p>"
         },
-        "modelIdentifiers":{
-          "shape":"EvaluationBedrockModelIdentifiers",
-          "documentation":"<p>The Amazon Resource Names (ARNs) of the model(s) used for the evaluation job.</p>",
-          "deprecated":true,
-          "deprecatedMessage":"Inference identifiers should be retrieved from the inferenceConfigSummary",
-          "deprecatedSince":"2025-03-07"
+        "contextualGroundingPolicyConfig":{
+          "shape":"GuardrailContextualGroundingPolicyConfig",
+          "documentation":"<p>The contextual grounding policy configuration used to create a guardrail.</p>"
         },
-        "ragIdentifiers":{
-          "shape":"EvaluationBedrockKnowledgeBaseIdentifiers",
-          "documentation":"<p>The Amazon Resource Names (ARNs) of the knowledge base resources used for a knowledge base evaluation job.</p>",
-          "deprecated":true,
-          "deprecatedMessage":"Inference identifiers should be retrieved from the inferenceConfigSummary",
-          "deprecatedSince":"2025-03-07"
+        "automatedReasoningPolicyConfig":{
+          "shape":"GuardrailAutomatedReasoningPolicyConfig",
+          "documentation":"<p>Optional configuration for integrating Automated Reasoning policies with the new guardrail.</p>"
         },
-        "evaluatorModelIdentifiers":{
-          "shape":"EvaluatorModelIdentifiers",
-          "documentation":"<p>The Amazon Resource Names (ARNs) of the models used to compute the metrics for a knowledge base evaluation job.</p>"
+        "crossRegionConfig":{
+          "shape":"GuardrailCrossRegionConfig",
+          "documentation":"<p>The system-defined guardrail profile that you're using with your guardrail. Guardrail profiles define the destination Amazon Web Services Regions where guardrail inference requests can be automatically routed.</p> <p>For more information, see the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-cross-region.html\">Amazon Bedrock User Guide</a>.</p>"
         },
-        "customMetricsEvaluatorModelIdentifiers":{
-          "shape":"EvaluatorModelIdentifiers",
-          "documentation":"<p>The Amazon Resource Names (ARNs) of the models used to compute custom metrics in an Amazon Bedrock evaluation job.</p>"
+        "blockedInputMessaging":{
+          "shape":"GuardrailBlockedMessaging",
+          "documentation":"<p>The message to return when the guardrail blocks a prompt.</p>"
         },
-        "inferenceConfigSummary":{
-          "shape":"EvaluationInferenceConfigSummary",
-          "documentation":"<p>Identifies the models, Knowledge Bases, or other RAG sources evaluated in a model or Knowledge Base evaluation job.</p>"
+        "blockedOutputsMessaging":{
+          "shape":"GuardrailBlockedMessaging",
+          "documentation":"<p>The message to return when the guardrail blocks a model response.</p>"
         },
-        "applicationType":{
-          "shape":"ApplicationType",
-          "documentation":"<p>Specifies whether the evaluation job is for evaluating a model or evaluating a knowledge base (retrieval and response generation).</p>"
+        "kmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The ARN of the KMS key that you use to encrypt the guardrail.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags that you want to attach to the guardrail. </p>"
+        },
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than once. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a> in the <i>Amazon S3 User Guide</i>.</p>",
+          "idempotencyToken":true
         }
-      },
-      "documentation":"<p>Summary information of an evaluation job.</p>"
+      }
     },
-    "EvaluationTaskType":{
-      "type":"string",
-      "enum":[
-        "Summarization",
-        "Classification",
-        "QuestionAndAnswer",
-        "Generation",
-        "Custom"
+    "CreateGuardrailResponse":{
+      "type":"structure",
+      "required":[
+        "guardrailId",
+        "guardrailArn",
+        "version",
+        "createdAt"
       ],
-      "max":63,
-      "min":1,
-      "pattern":"[A-Za-z0-9]+"
+      "members":{
+        "guardrailId":{
+          "shape":"GuardrailId",
+          "documentation":"<p>The unique identifier of the guardrail that was created.</p>"
+        },
+        "guardrailArn":{
+          "shape":"GuardrailArn",
+          "documentation":"<p>The ARN of the guardrail.</p>"
+        },
+        "version":{
+          "shape":"GuardrailDraftVersion",
+          "documentation":"<p>The version of the guardrail that was created. This value will always be <code>DRAFT</code>.</p>"
+        },
+        "createdAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time at which the guardrail was created.</p>"
+        }
+      }
     },
-    "EvaluationTaskTypes":{
-      "type":"list",
-      "member":{"shape":"EvaluationTaskType"},
-      "max":5,
-      "min":1
+    "CreateGuardrailVersionRequest":{
+      "type":"structure",
+      "required":["guardrailIdentifier"],
+      "members":{
+        "guardrailIdentifier":{
+          "shape":"GuardrailIdentifier",
+          "documentation":"<p>The unique identifier of the guardrail. This can be an ID or the ARN.</p>",
+          "location":"uri",
+          "locationName":"guardrailIdentifier"
+        },
+        "description":{
+          "shape":"GuardrailDescription",
+          "documentation":"<p>A description of the guardrail version.</p>"
+        },
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than once. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a> in the <i>Amazon S3 User Guide</i>.</p>",
+          "idempotencyToken":true
+        }
+      }
     },
-    "EvaluatorModelConfig":{
+    "CreateGuardrailVersionResponse":{
+      "type":"structure",
+      "required":[
+        "guardrailId",
+        "version"
+      ],
+      "members":{
+        "guardrailId":{
+          "shape":"GuardrailId",
+          "documentation":"<p>The unique identifier of the guardrail.</p>"
+        },
+        "version":{
+          "shape":"GuardrailNumericalVersion",
+          "documentation":"<p>The number of the version of the guardrail.</p>"
+        }
+      }
+    },
+    "CreateInferenceProfileRequest":{
+      "type":"structure",
+      "required":[
+        "inferenceProfileName",
+        "modelSource"
+      ],
+      "members":{
+        "inferenceProfileName":{
+          "shape":"InferenceProfileName",
+          "documentation":"<p>A name for the inference profile.</p>"
+        },
+        "description":{
+          "shape":"InferenceProfileDescription",
+          "documentation":"<p>A description for the inference profile.</p>"
+        },
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a>.</p>",
+          "idempotencyToken":true
+        },
+        "modelSource":{
+          "shape":"InferenceProfileModelSource",
+          "documentation":"<p>The foundation model or system-defined inference profile that the inference profile will track metrics and costs for.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>An array of objects, each of which contains a tag and its value. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Tagging resources</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+        }
+      }
+    },
+    "CreateInferenceProfileResponse":{
+      "type":"structure",
+      "required":["inferenceProfileArn"],
+      "members":{
+        "inferenceProfileArn":{
+          "shape":"InferenceProfileArn",
+          "documentation":"<p>The ARN of the inference profile that you created.</p>"
+        },
+        "status":{
+          "shape":"InferenceProfileStatus",
+          "documentation":"<p>The status of the inference profile. <code>ACTIVE</code> means that the inference profile is ready to be used.</p>"
+        }
+      }
+    },
+    "CreateMarketplaceModelEndpointRequest":{
+      "type":"structure",
+      "required":[
+        "modelSourceIdentifier",
+        "endpointConfig",
+        "endpointName"
+      ],
+      "members":{
+        "modelSourceIdentifier":{
+          "shape":"ModelSourceIdentifier",
+          "documentation":"<p>The ARN of the model from Amazon Bedrock Marketplace that you want to deploy to the endpoint.</p>"
+        },
+        "endpointConfig":{
+          "shape":"EndpointConfig",
+          "documentation":"<p>The configuration for the endpoint, including the number and type of instances to use.</p>"
+        },
+        "acceptEula":{
+          "shape":"AcceptEula",
+          "documentation":"<p>Indicates whether you accept the end-user license agreement (EULA) for the model. Set to <code>true</code> to accept the EULA.</p>"
+        },
+        "endpointName":{
+          "shape":"EndpointName",
+          "documentation":"<p>The name of the endpoint. This name must be unique within your Amazon Web Services account and region.</p>"
+        },
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. This token is listed as not required because Amazon Web Services SDKs automatically generate it for you and set this parameter. If you're not using the Amazon Web Services SDK or the CLI, you must provide this token or the action will fail.</p>",
+          "idempotencyToken":true
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>An array of key-value pairs to apply to the underlying Amazon SageMaker endpoint. You can use these tags to organize and identify your Amazon Web Services resources.</p>"
+        }
+      }
+    },
+    "CreateMarketplaceModelEndpointResponse":{
+      "type":"structure",
+      "required":["marketplaceModelEndpoint"],
+      "members":{
+        "marketplaceModelEndpoint":{
+          "shape":"MarketplaceModelEndpoint",
+          "documentation":"<p>Details about the created endpoint.</p>"
+        }
+      }
+    },
+    "CreateModelCopyJobRequest":{
+      "type":"structure",
+      "required":[
+        "sourceModelArn",
+        "targetModelName"
+      ],
+      "members":{
+        "sourceModelArn":{
+          "shape":"ModelArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the model to be copied.</p>"
+        },
+        "targetModelName":{
+          "shape":"CustomModelName",
+          "documentation":"<p>A name for the copied model.</p>"
+        },
+        "modelKmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The ARN of the KMS key that you use to encrypt the model copy.</p>"
+        },
+        "targetModelTags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to associate with the target model. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/tagging.html\">Tag resources</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+        },
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a>.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "CreateModelCopyJobResponse":{
+      "type":"structure",
+      "required":["jobArn"],
+      "members":{
+        "jobArn":{
+          "shape":"ModelCopyJobArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the model copy job.</p>"
+        }
+      }
+    },
+    "CreateModelCustomizationJobRequest":{
+      "type":"structure",
+      "required":[
+        "jobName",
+        "customModelName",
+        "roleArn",
+        "baseModelIdentifier",
+        "trainingDataConfig",
+        "outputDataConfig"
+      ],
+      "members":{
+        "jobName":{
+          "shape":"JobName",
+          "documentation":"<p>A name for the fine-tuning job.</p>"
+        },
+        "customModelName":{
+          "shape":"CustomModelName",
+          "documentation":"<p>A name for the resulting custom model.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM service role that Amazon Bedrock can assume to perform tasks on your behalf. For example, during model training, Amazon Bedrock needs your permission to read input data from an S3 bucket, write model artifacts to an S3 bucket. To pass this role to Amazon Bedrock, the caller of this API must have the <code>iam:PassRole</code> permission. </p>"
+        },
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a>.</p>",
+          "idempotencyToken":true
+        },
+        "baseModelIdentifier":{
+          "shape":"BaseModelIdentifier",
+          "documentation":"<p>Name of the base model.</p>"
+        },
+        "customizationType":{
+          "shape":"CustomizationType",
+          "documentation":"<p>The customization type.</p>"
+        },
+        "customModelKmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The custom model is encrypted at rest using this key.</p>"
+        },
+        "jobTags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to attach to the job.</p>"
+        },
+        "customModelTags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to attach to the resulting custom model.</p>"
+        },
+        "trainingDataConfig":{
+          "shape":"TrainingDataConfig",
+          "documentation":"<p>Information about the training dataset.</p>"
+        },
+        "validationDataConfig":{
+          "shape":"ValidationDataConfig",
+          "documentation":"<p>Information about the validation dataset. </p>"
+        },
+        "outputDataConfig":{
+          "shape":"OutputDataConfig",
+          "documentation":"<p>S3 location for the output data.</p>"
+        },
+        "hyperParameters":{
+          "shape":"ModelCustomizationHyperParameters",
+          "documentation":"<p>Parameters related to tuning the model. For details on the format for different models, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models-hp.html\">Custom model hyperparameters</a>.</p>"
+        },
+        "vpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>The configuration of the Virtual Private Cloud (VPC) that contains the resources that you're using for this job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-model-customization.html\">Protect your model customization jobs using a VPC</a>.</p>"
+        },
+        "customizationConfig":{
+          "shape":"CustomizationConfig",
+          "documentation":"<p>The customization configuration for the model customization job.</p>"
+        }
+      }
+    },
+    "CreateModelCustomizationJobResponse":{
+      "type":"structure",
+      "required":["jobArn"],
+      "members":{
+        "jobArn":{
+          "shape":"ModelCustomizationJobArn",
+          "documentation":"<p>Amazon Resource Name (ARN) of the fine tuning job</p>"
+        }
+      }
+    },
+    "CreateModelImportJobRequest":{
+      "type":"structure",
+      "required":[
+        "jobName",
+        "importedModelName",
+        "roleArn",
+        "modelDataSource"
+      ],
+      "members":{
+        "jobName":{
+          "shape":"JobName",
+          "documentation":"<p>The name of the import job.</p>"
+        },
+        "importedModelName":{
+          "shape":"ImportedModelName",
+          "documentation":"<p>The name of the imported model.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the model import job.</p>"
+        },
+        "modelDataSource":{
+          "shape":"ModelDataSource",
+          "documentation":"<p>The data source for the imported model.</p>"
+        },
+        "jobTags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to attach to this import job. </p>"
+        },
+        "importedModelTags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to attach to the imported model.</p>"
+        },
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a>.</p>"
+        },
+        "vpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>VPC configuration parameters for the private Virtual Private Cloud (VPC) that contains the resources you are using for the import job.</p>"
+        },
+        "importedModelKmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The imported model is encrypted at rest using this key.</p>"
+        }
+      }
+    },
+    "CreateModelImportJobResponse":{
+      "type":"structure",
+      "required":["jobArn"],
+      "members":{
+        "jobArn":{
+          "shape":"ModelImportJobArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the model import job.</p>"
+        }
+      }
+    },
+    "CreateModelInvocationJobRequest":{
+      "type":"structure",
+      "required":[
+        "jobName",
+        "roleArn",
+        "modelId",
+        "inputDataConfig",
+        "outputDataConfig"
+      ],
+      "members":{
+        "jobName":{
+          "shape":"ModelInvocationJobName",
+          "documentation":"<p>A name to give the batch inference job.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the service role with permissions to carry out and manage batch inference. You can use the console to create a default service role or follow the steps at <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-iam-sr.html\">Create a service role for batch inference</a>.</p>"
+        },
+        "clientRequestToken":{
+          "shape":"ModelInvocationIdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a>.</p>",
+          "idempotencyToken":true
+        },
+        "modelId":{
+          "shape":"ModelId",
+          "documentation":"<p>The unique identifier of the foundation model to use for the batch inference job.</p>"
+        },
+        "inputDataConfig":{
+          "shape":"ModelInvocationJobInputDataConfig",
+          "documentation":"<p>Details about the location of the input to the batch inference job.</p>"
+        },
+        "outputDataConfig":{
+          "shape":"ModelInvocationJobOutputDataConfig",
+          "documentation":"<p>Details about the location of the output of the batch inference job.</p>"
+        },
+        "vpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>The configuration of the Virtual Private Cloud (VPC) for the data in the batch inference job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-vpc\">Protect batch inference jobs using a VPC</a>.</p>"
+        },
+        "timeoutDurationInHours":{
+          "shape":"ModelInvocationJobTimeoutDurationInHours",
+          "documentation":"<p>The number of hours after which to force the batch inference job to time out.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>Any tags to associate with the batch inference job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/tagging.html\">Tagging Amazon Bedrock resources</a>.</p>"
+        }
+      }
+    },
+    "CreateModelInvocationJobResponse":{
+      "type":"structure",
+      "required":["jobArn"],
+      "members":{
+        "jobArn":{
+          "shape":"ModelInvocationJobArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the batch inference job.</p>"
+        }
+      }
+    },
+    "CreatePromptRouterRequest":{
+      "type":"structure",
+      "required":[
+        "promptRouterName",
+        "models",
+        "routingCriteria",
+        "fallbackModel"
+      ],
+      "members":{
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure idempotency of your requests. If not specified, the Amazon Web Services SDK automatically generates one for you.</p>",
+          "idempotencyToken":true
+        },
+        "promptRouterName":{
+          "shape":"PromptRouterName",
+          "documentation":"<p>The name of the prompt router. The name must be unique within your Amazon Web Services account in the current region.</p>"
+        },
+        "models":{
+          "shape":"PromptRouterTargetModels",
+          "documentation":"<p>A list of foundation models that the prompt router can route requests to. At least one model must be specified.</p>"
+        },
+        "description":{
+          "shape":"PromptRouterDescription",
+          "documentation":"<p>An optional description of the prompt router to help identify its purpose.</p>"
+        },
+        "routingCriteria":{
+          "shape":"RoutingCriteria",
+          "documentation":"<p>The criteria, which is the response quality difference, used to determine how incoming requests are routed to different models.</p>"
+        },
+        "fallbackModel":{
+          "shape":"PromptRouterTargetModel",
+          "documentation":"<p>The default model to use when the routing criteria is not met.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>An array of key-value pairs to apply to this resource as tags. You can use tags to categorize and manage your Amazon Web Services resources.</p>"
+        }
+      }
+    },
+    "CreatePromptRouterResponse":{
       "type":"structure",
       "members":{
-        "bedrockEvaluatorModels":{
-          "shape":"BedrockEvaluatorModels",
-          "documentation":"<p>The evaluator model used in knowledge base evaluation job or in model evaluation job that use a model as judge. This model computes all evaluation related metrics.</p>"
+        "promptRouterArn":{
+          "shape":"PromptRouterArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies the prompt router.</p>"
+        }
+      }
+    },
+    "CreateProvisionedModelThroughputRequest":{
+      "type":"structure",
+      "required":[
+        "modelUnits",
+        "provisionedModelName",
+        "modelId"
+      ],
+      "members":{
+        "clientRequestToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a> in the Amazon S3 User Guide.</p>",
+          "idempotencyToken":true
+        },
+        "modelUnits":{
+          "shape":"PositiveInteger",
+          "documentation":"<p>Number of model units to allocate. A model unit delivers a specific throughput level for the specified model. The throughput level of a model unit specifies the total number of input and output tokens that it can process and generate within a span of one minute. By default, your account has no model units for purchasing Provisioned Throughputs with commitment. You must first visit the <a href=\"https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase\">Amazon Web Services support center</a> to request MUs.</p> <p>For model unit quotas, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html#prov-thru-quotas\">Provisioned Throughput quotas</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p> <p>For more information about what an MU specifies, contact your Amazon Web Services account manager.</p>"
+        },
+        "provisionedModelName":{
+          "shape":"ProvisionedModelName",
+          "documentation":"<p>The name for this Provisioned Throughput.</p>"
+        },
+        "modelId":{
+          "shape":"ModelIdentifier",
+          "documentation":"<p>The Amazon Resource Name (ARN) or name of the model to associate with this Provisioned Throughput. For a list of models for which you can purchase Provisioned Throughput, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#prov-throughput-models\">Amazon Bedrock model IDs for purchasing Provisioned Throughput</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+        },
+        "commitmentDuration":{
+          "shape":"CommitmentDuration",
+          "documentation":"<p>The commitment duration requested for the Provisioned Throughput. Billing occurs hourly and is discounted for longer commitment terms. To request a no-commit Provisioned Throughput, omit this field.</p> <p>Custom models support all levels of commitment. To see which base models support no commitment, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/pt-supported.html\">Supported regions and models for Provisioned Throughput</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a> </p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to associate with this Provisioned Throughput.</p>"
+        }
+      }
+    },
+    "CreateProvisionedModelThroughputResponse":{
+      "type":"structure",
+      "required":["provisionedModelArn"],
+      "members":{
+        "provisionedModelArn":{
+          "shape":"ProvisionedModelArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for this Provisioned Throughput.</p>"
+        }
+      }
+    },
+    "CustomMetricBedrockEvaluatorModel":{
+      "type":"structure",
+      "required":["modelIdentifier"],
+      "members":{
+        "modelIdentifier":{
+          "shape":"EvaluatorModelIdentifier",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the evaluator model for custom metrics. For a list of supported evaluator models, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation-judge.html\">Evaluate model performance using another LLM as a judge</a> and <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation-kb.html\">Evaluate the performance of RAG sources using Amazon Bedrock evaluations</a>.</p>"
         }
       },
-      "documentation":"<p>Specifies the model configuration for the evaluator model. <code>EvaluatorModelConfig</code> is required for evaluation jobs that use a knowledge base or in model evaluation job that use a model as judge. This model computes all evaluation related metrics.</p>",
-      "union":true
+      "documentation":"<p>Defines the model you want to evaluate custom metrics in an Amazon Bedrock evaluation job.</p>"
     },
-    "EvaluatorModelIdentifier":{
+    "CustomMetricBedrockEvaluatorModels":{
+      "type":"list",
+      "member":{"shape":"CustomMetricBedrockEvaluatorModel"},
+      "max":1,
+      "min":1
+    },
+    "CustomMetricDefinition":{
+      "type":"structure",
+      "required":[
+        "name",
+        "instructions"
+      ],
+      "members":{
+        "name":{
+          "shape":"MetricName",
+          "documentation":"<p>The name for a custom metric. Names must be unique in your Amazon Web Services region.</p>"
+        },
+        "instructions":{
+          "shape":"CustomMetricInstructions",
+          "documentation":"<p>The prompt for a custom metric that instructs the evaluator model how to rate the model or RAG source under evaluation.</p>"
+        },
+        "ratingScale":{
+          "shape":"RatingScale",
+          "documentation":"<p>Defines the rating scale to be used for a custom metric. We recommend that you always define a ratings scale when creating a custom metric. If you don't define a scale, Amazon Bedrock won't be able to visually display the results of the evaluation in the console or calculate average values of numerical scores. For more information on specifying a rating scale, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-evaluation-custom-metrics-prompt-formats.html#model-evaluation-custom-metrics-prompt-formats-schema\">Specifying an output schema (rating scale)</a>.</p>"
+        }
+      },
+      "documentation":"<p>The definition of a custom metric for use in an Amazon Bedrock evaluation job. A custom metric definition includes a metric name, prompt (instructions) and optionally, a rating scale. Your prompt must include a task description and input variables. The required input variables are different for model-as-a-judge and RAG evaluations.</p> <p>For more information about how to define a custom metric in Amazon Bedrock, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-evaluation-custom-metrics-prompt-formats.html\">Create a prompt for a custom metrics (LLM-as-a-judge model evaluations)</a> and <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-evaluation-custom-metrics-prompt-formats.html\">Create a prompt for a custom metrics (RAG evaluations)</a>.</p>",
+      "sensitive":true
+    },
+    "CustomMetricEvaluatorModelConfig":{
+      "type":"structure",
+      "required":["bedrockEvaluatorModels"],
+      "members":{
+        "bedrockEvaluatorModels":{
+          "shape":"CustomMetricBedrockEvaluatorModels",
+          "documentation":"<p>Defines the model you want to evaluate custom metrics in an Amazon Bedrock evaluation job.</p>"
+        }
+      },
+      "documentation":"<p>Configuration of the evaluator model you want to use to evaluate custom metrics in an Amazon Bedrock evaluation job.</p>"
+    },
+    "CustomMetricInstructions":{
+      "type":"string",
+      "max":5000,
+      "min":1
+    },
+    "CustomModelArn":{
+      "type":"string",
+      "max":1011,
+      "min":20,
+      "pattern":"arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:custom-model/(imported|[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2})/[a-z0-9]{12}"
+    },
+    "CustomModelDeploymentArn":{
+      "type":"string",
+      "max":1011,
+      "min":0,
+      "pattern":"arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:custom-model-deployment/[a-z0-9]{12}"
+    },
+    "CustomModelDeploymentDescription":{
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:((:foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|([0-9]{12}:inference-profile/(([a-z-]{2,8}.)[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63})))))$|(^[a-z0-9-]+[.][a-z0-9-]+([.][a-z0-9-]+)*(:[a-z0-9-]+)?$)|^[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2}(/[a-z0-9]{12}|)"
+      "pattern":".*"
     },
-    "EvaluatorModelIdentifiers":{
-      "type":"list",
-      "member":{"shape":"EvaluatorModelIdentifier"},
-      "max":1,
-      "min":0
-    },
-    "ExportAutomatedReasoningPolicyVersionRequest":{
-      "type":"structure",
-      "required":["policyArn"],
-      "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy to export. Can be either the unversioned ARN for the draft policy or a versioned ARN for a specific policy version.</p>",
-          "location":"uri",
-          "locationName":"policyArn"
-        }
-      }
-    },
-    "ExportAutomatedReasoningPolicyVersionResponse":{
-      "type":"structure",
-      "required":["policyDefinition"],
-      "members":{
-        "policyDefinition":{
-          "shape":"AutomatedReasoningPolicyDefinition",
-          "documentation":"<p>The exported policy definition containing the formal logic rules, variables, and custom variable types.</p>"
-        }
-      },
-      "payload":"policyDefinition"
-    },
-    "ExternalSource":{
-      "type":"structure",
-      "required":["sourceType"],
-      "members":{
-        "sourceType":{
-          "shape":"ExternalSourceType",
-          "documentation":"<p>The source type of the external source wrapper object.</p>"
-        },
-        "s3Location":{
-          "shape":"S3ObjectDoc",
-          "documentation":"<p>The S3 location of the external source wrapper object.</p>"
-        },
-        "byteContent":{
-          "shape":"ByteContentDoc",
-          "documentation":"<p>The identifier, content type, and data of the external source wrapper object.</p>"
-        }
-      },
-      "documentation":"<p>The unique external source of the content contained in the wrapper object.</p>"
-    },
-    "ExternalSourceType":{
+    "CustomModelDeploymentIdentifier":{
       "type":"string",
-      "enum":[
-        "S3",
-        "BYTE_CONTENT"
-      ]
-    },
-    "ExternalSources":{
-      "type":"list",
-      "member":{"shape":"ExternalSource"},
-      "max":1,
-      "min":1
-    },
-    "ExternalSourcesGenerationConfiguration":{
-      "type":"structure",
-      "members":{
-        "promptTemplate":{
-          "shape":"PromptTemplate",
-          "documentation":"<p>Contains the template for the prompt for the external source wrapper object.</p>"
-        },
-        "guardrailConfiguration":{
-          "shape":"GuardrailConfiguration",
-          "documentation":"<p>Configuration details for the guardrail.</p>"
-        },
-        "kbInferenceConfig":{
-          "shape":"KbInferenceConfig",
-          "documentation":"<p>Configuration details for inference when using <code>RetrieveAndGenerate</code> to generate responses while using an external source.</p>"
-        },
-        "additionalModelRequestFields":{
-          "shape":"AdditionalModelRequestFields",
-          "documentation":"<p>Additional model parameters and their corresponding values not included in the text inference configuration for an external source. Takes in custom model parameters specific to the language model being used.</p>"
-        }
-      },
-      "documentation":"<p>The response generation configuration of the external source wrapper object.</p>"
-    },
-    "ExternalSourcesRetrieveAndGenerateConfiguration":{
-      "type":"structure",
-      "required":[
-        "modelArn",
-        "sources"
-      ],
-      "members":{
-        "modelArn":{
-          "shape":"BedrockModelArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the foundation model or <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html\">inference profile</a> used to generate responses. </p>"
-        },
-        "sources":{
-          "shape":"ExternalSources",
-          "documentation":"<p>The document for the external source wrapper object in the <code>retrieveAndGenerate</code> function.</p>"
-        },
-        "generationConfiguration":{
-          "shape":"ExternalSourcesGenerationConfiguration",
-          "documentation":"<p>Contains configurations details for response generation based on retrieved text chunks.</p>"
-        }
-      },
-      "documentation":"<p>The configuration of the external source wrapper object in the <code>retrieveAndGenerate</code> function.</p>"
-    },
-    "FieldForReranking":{
-      "type":"structure",
-      "required":["fieldName"],
-      "members":{
-        "fieldName":{
-          "shape":"FieldForRerankingFieldNameString",
-          "documentation":"<p>The name of the metadata field to be used during the reranking process.</p>"
-        }
-      },
-      "documentation":"<p>Specifies a field to be used during the reranking process in a Knowledge Base vector search. This structure identifies metadata fields that should be considered when reordering search results to improve relevance.</p>"
-    },
-    "FieldForRerankingFieldNameString":{
-      "type":"string",
-      "max":2000,
-      "min":1
-    },
-    "FieldsForReranking":{
-      "type":"list",
-      "member":{"shape":"FieldForReranking"},
-      "max":100,
+      "max":93,
       "min":1,
-      "sensitive":true
+      "pattern":"(arn:aws(|-us-gov|-cn|-iso|-iso-b):bedrock:[a-z0-9-]{1,20}:[0-9]{12}:custom-model-deployment/[a-z0-9]{12})|^([0-9a-zA-Z][_-]?){1,63}"
     },
-    "FilterAttribute":{
-      "type":"structure",
-      "required":[
-        "key",
-        "value"
-      ],
-      "members":{
-        "key":{
-          "shape":"FilterKey",
-          "documentation":"<p>The name of metadata attribute/field, which must match the name in your data source/document metadata.</p>"
-        },
-        "value":{
-          "shape":"FilterValue",
-          "documentation":"<p>The value of the metadata attribute/field.</p>"
-        }
-      },
-      "documentation":"<p>Specifies the name of the metadata attribute/field to apply filters. You must match the name of the attribute/field in your data source/document metadata.</p>"
-    },
-    "FilterKey":{
-      "type":"string",
-      "max":100,
-      "min":1
-    },
-    "FilterValue":{
-      "type":"structure",
-      "members":{
-      },
-      "document":true
-    },
-    "FineTuningJobStatus":{
+    "CustomModelDeploymentStatus":{
       "type":"string",
       "enum":[
-        "InProgress",
-        "Completed",
-        "Failed",
-        "Stopping",
-        "Stopped"
+        "Creating",
+        "Active",
+        "Failed"
       ]
     },
-    "Float":{
-      "type":"float",
-      "box":true
-    },
-    "FoundationModelArn":{
-      "type":"string",
-      "pattern":"arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}::foundation-model/[a-z0-9-]{1,63}[.]{1}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2}"
-    },
-    "FoundationModelDetails":{
+    "CustomModelDeploymentSummary":{
       "type":"structure",
       "required":[
+        "customModelDeploymentArn",
+        "customModelDeploymentName",
         "modelArn",
-        "modelId"
-      ],
-      "members":{
-        "modelArn":{
-          "shape":"FoundationModelArn",
-          "documentation":"<p>The model Amazon Resource Name (ARN).</p>"
-        },
-        "modelId":{
-          "shape":"BedrockModelId",
-          "documentation":"<p>The model identifier.</p>"
-        },
-        "modelName":{
-          "shape":"BrandedName",
-          "documentation":"<p>The model name.</p>"
-        },
-        "providerName":{
-          "shape":"BrandedName",
-          "documentation":"<p>The model's provider name.</p>"
-        },
-        "inputModalities":{
-          "shape":"ModelModalityList",
-          "documentation":"<p>The input modalities that the model supports.</p>"
-        },
-        "outputModalities":{
-          "shape":"ModelModalityList",
-          "documentation":"<p>The output modalities that the model supports.</p>"
-        },
-        "responseStreamingSupported":{
-          "shape":"Boolean",
-          "documentation":"<p>Indicates whether the model supports streaming.</p>"
-        },
-        "customizationsSupported":{
-          "shape":"ModelCustomizationList",
-          "documentation":"<p>The customization that the model supports.</p>"
-        },
-        "inferenceTypesSupported":{
-          "shape":"InferenceTypeList",
-          "documentation":"<p>The inference types that the model supports.</p>"
-        },
-        "modelLifecycle":{
-          "shape":"FoundationModelLifecycle",
-          "documentation":"<p>Contains details about whether a model version is available or deprecated</p>"
-        }
-      },
-      "documentation":"<p>Information about a foundation model.</p>"
-    },
-    "FoundationModelLifecycle":{
-      "type":"structure",
-      "required":["status"],
-      "members":{
-        "status":{
-          "shape":"FoundationModelLifecycleStatus",
-          "documentation":"<p>Specifies whether a model version is available (<code>ACTIVE</code>) or deprecated (<code>LEGACY</code>.</p>"
-        }
-      },
-      "documentation":"<p>Details about whether a model version is available or deprecated.</p>"
-    },
-    "FoundationModelLifecycleStatus":{
-      "type":"string",
-      "enum":[
-        "ACTIVE",
-        "LEGACY"
-      ]
-    },
-    "FoundationModelSummary":{
-      "type":"structure",
-      "required":[
-        "modelArn",
-        "modelId"
-      ],
-      "members":{
-        "modelArn":{
-          "shape":"FoundationModelArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the foundation model.</p>"
-        },
-        "modelId":{
-          "shape":"BedrockModelId",
-          "documentation":"<p>The model ID of the foundation model.</p>"
-        },
-        "modelName":{
-          "shape":"BrandedName",
-          "documentation":"<p>The name of the model.</p>"
-        },
-        "providerName":{
-          "shape":"BrandedName",
-          "documentation":"<p>The model's provider name.</p>"
-        },
-        "inputModalities":{
-          "shape":"ModelModalityList",
-          "documentation":"<p>The input modalities that the model supports.</p>"
-        },
-        "outputModalities":{
-          "shape":"ModelModalityList",
-          "documentation":"<p>The output modalities that the model supports.</p>"
-        },
-        "responseStreamingSupported":{
-          "shape":"Boolean",
-          "documentation":"<p>Indicates whether the model supports streaming.</p>"
-        },
-        "customizationsSupported":{
-          "shape":"ModelCustomizationList",
-          "documentation":"<p>Whether the model supports fine-tuning or continual pre-training.</p>"
-        },
-        "inferenceTypesSupported":{
-          "shape":"InferenceTypeList",
-          "documentation":"<p>The inference types that the model supports.</p>"
-        },
-        "modelLifecycle":{
-          "shape":"FoundationModelLifecycle",
-          "documentation":"<p>Contains details about whether a model version is available or deprecated.</p>"
-        }
-      },
-      "documentation":"<p>Summary information for a foundation model.</p>"
-    },
-    "FoundationModelSummaryList":{
-      "type":"list",
-      "member":{"shape":"FoundationModelSummary"}
-    },
-    "GenerationConfiguration":{
-      "type":"structure",
-      "members":{
-        "promptTemplate":{
-          "shape":"PromptTemplate",
-          "documentation":"<p>Contains the template for the prompt that's sent to the model for response generation.</p>"
-        },
-        "guardrailConfiguration":{
-          "shape":"GuardrailConfiguration",
-          "documentation":"<p>Contains configuration details for the guardrail.</p>"
-        },
-        "kbInferenceConfig":{
-          "shape":"KbInferenceConfig",
-          "documentation":"<p>Contains configuration details for inference for knowledge base retrieval and response generation.</p>"
-        },
-        "additionalModelRequestFields":{
-          "shape":"AdditionalModelRequestFields",
-          "documentation":"<p>Additional model parameters and corresponding values not included in the <code>textInferenceConfig</code> structure for a knowledge base. This allows you to provide custom model parameters specific to the language model being used.</p>"
-        }
-      },
-      "documentation":"<p>The configuration details for response generation based on retrieved text chunks.</p>"
-    },
-    "GetAutomatedReasoningPolicyAnnotationsRequest":{
-      "type":"structure",
-      "required":[
-        "policyArn",
-        "buildWorkflowId"
-      ],
-      "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy whose annotations you want to retrieve.</p>",
-          "location":"uri",
-          "locationName":"policyArn"
-        },
-        "buildWorkflowId":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
-          "documentation":"<p>The unique identifier of the build workflow whose annotations you want to retrieve.</p>",
-          "location":"uri",
-          "locationName":"buildWorkflowId"
-        }
-      }
-    },
-    "GetAutomatedReasoningPolicyAnnotationsResponse":{
-      "type":"structure",
-      "required":[
-        "policyArn",
-        "name",
-        "buildWorkflowId",
-        "annotations",
-        "annotationSetHash",
-        "updatedAt"
-      ],
-      "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>"
-        },
-        "name":{
-          "shape":"AutomatedReasoningPolicyName",
-          "documentation":"<p>The name of the Automated Reasoning policy.</p>"
-        },
-        "buildWorkflowId":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
-          "documentation":"<p>The unique identifier of the build workflow.</p>"
-        },
-        "annotations":{
-          "shape":"AutomatedReasoningPolicyAnnotationList",
-          "documentation":"<p>The current set of annotations containing rules, variables, and types extracted from the source documents. These can be modified before finalizing the policy.</p>"
-        },
-        "annotationSetHash":{
-          "shape":"AutomatedReasoningPolicyHash",
-          "documentation":"<p>A hash value representing the current state of the annotations. This is used for optimistic concurrency control when updating annotations.</p>"
-        },
-        "updatedAt":{
-          "shape":"Timestamp",
-          "documentation":"<p>The timestamp when the annotations were last updated.</p>"
-        }
-      }
-    },
-    "GetAutomatedReasoningPolicyBuildWorkflowRequest":{
-      "type":"structure",
-      "required":[
-        "policyArn",
-        "buildWorkflowId"
-      ],
-      "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy whose build workflow you want to retrieve.</p>",
-          "location":"uri",
-          "locationName":"policyArn"
-        },
-        "buildWorkflowId":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
-          "documentation":"<p>The unique identifier of the build workflow to retrieve.</p>",
-          "location":"uri",
-          "locationName":"buildWorkflowId"
-        }
-      }
-    },
-    "GetAutomatedReasoningPolicyBuildWorkflowResponse":{
-      "type":"structure",
-      "required":[
-        "policyArn",
-        "buildWorkflowId",
-        "status",
-        "buildWorkflowType",
         "createdAt",
-        "updatedAt"
+        "status"
       ],
       "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>"
+        "customModelDeploymentArn":{
+          "shape":"CustomModelDeploymentArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the custom model deployment.</p>"
         },
-        "buildWorkflowId":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
-          "documentation":"<p>The unique identifier of the build workflow.</p>"
+        "customModelDeploymentName":{
+          "shape":"ModelDeploymentName",
+          "documentation":"<p>The name of the custom model deployment.</p>"
         },
-        "status":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowStatus",
-          "documentation":"<p>The current status of the build workflow (e.g., RUNNING, COMPLETED, FAILED, CANCELLED).</p>"
-        },
-        "buildWorkflowType":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowType",
-          "documentation":"<p>The type of build workflow being executed (e.g., DOCUMENT_INGESTION, POLICY_REPAIR).</p>"
-        },
-        "documentName":{
-          "shape":"AutomatedReasoningPolicyBuildDocumentName",
-          "documentation":"<p>The name of the source document used in the build workflow.</p>"
-        },
-        "documentContentType":{
-          "shape":"AutomatedReasoningPolicyBuildDocumentContentType",
-          "documentation":"<p>The content type of the source document (e.g., text/plain, application/pdf).</p>"
-        },
-        "documentDescription":{
-          "shape":"AutomatedReasoningPolicyBuildDocumentDescription",
-          "documentation":"<p>A detailed description of the document's content and how it should be used in the policy generation process.</p>"
+        "modelArn":{
+          "shape":"ModelArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the custom model associated with this deployment.</p>"
         },
         "createdAt":{
           "shape":"Timestamp",
-          "documentation":"<p>The timestamp when the build workflow was created.</p>"
+          "documentation":"<p>The date and time when the custom model deployment was created.</p>"
         },
-        "updatedAt":{
+        "status":{
+          "shape":"CustomModelDeploymentStatus",
+          "documentation":"<p>The status of the custom model deployment. Possible values are <code>CREATING</code>, <code>ACTIVE</code>, and <code>FAILED</code>.</p>"
+        },
+        "lastUpdatedAt":{
           "shape":"Timestamp",
-          "documentation":"<p>The timestamp when the build workflow was last updated.</p>"
+          "documentation":"<p>The date and time when the custom model deployment was last modified.</p>"
+        },
+        "failureMessage":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>If the deployment status is <code>FAILED</code>, this field contains a message describing the failure reason.</p>"
         }
-      }
+      },
+      "documentation":"<p>Contains summary information about a custom model deployment, including its ARN, name, status, and associated custom model.</p>"
     },
-    "GetAutomatedReasoningPolicyBuildWorkflowResultAssetsRequest":{
+    "CustomModelDeploymentSummaryList":{
+      "type":"list",
+      "member":{"shape":"CustomModelDeploymentSummary"}
+    },
+    "CustomModelName":{
+      "type":"string",
+      "max":63,
+      "min":1,
+      "pattern":"([0-9a-zA-Z][_-]?){1,63}"
+    },
+    "CustomModelSummary":{
+      "type":"structure",
+      "required":[
+        "modelArn",
+        "modelName",
+        "creationTime",
+        "baseModelArn",
+        "baseModelName"
+      ],
+      "members":{
+        "modelArn":{
+          "shape":"CustomModelArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the custom model.</p>"
+        },
+        "modelName":{
+          "shape":"CustomModelName",
+          "documentation":"<p>The name of the custom model.</p>"
+        },
+        "creationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>Creation time of the model.</p>"
+        },
+        "baseModelArn":{
+          "shape":"ModelArn",
+          "documentation":"<p>The base model Amazon Resource Name (ARN).</p>"
+        },
+        "baseModelName":{
+          "shape":"ModelName",
+          "documentation":"<p>The base model name.</p>"
+        },
+        "customizationType":{
+          "shape":"CustomizationType",
+          "documentation":"<p>Specifies whether to carry out continued pre-training of a model or whether to fine-tune it. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a>.</p>"
+        },
+        "ownerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The unique identifier of the account that owns the model.</p>"
+        },
+        "modelStatus":{
+          "shape":"ModelStatus",
+          "documentation":"<p>The current status of the custom model. Possible values include:</p> <ul> <li> <p> <code>Creating</code> - The model is being created and validated.</p> </li> <li> <p> <code>Active</code> - The model has been successfully created and is ready for use.</p> </li> <li> <p> <code>Failed</code> - The model creation process failed.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Summary information for a custom model.</p>"
+    },
+    "CustomModelSummaryList":{
+      "type":"list",
+      "member":{"shape":"CustomModelSummary"}
+    },
+    "CustomModelUnits":{
+      "type":"structure",
+      "members":{
+        "customModelUnitsPerModelCopy":{
+          "shape":"Integer",
+          "documentation":"<p>The number of custom model units used to host a model copy. </p>"
+        },
+        "customModelUnitsVersion":{
+          "shape":"CustomModelUnitsVersion",
+          "documentation":"<p>The version of the custom model unit. Use to determine the billing rate for the custom model unit.</p>"
+        }
+      },
+      "documentation":"<p>A <code>CustomModelUnit</code> (CMU) is an abstract view of the hardware utilization that Amazon Bedrock needs to host a single copy of your custom model. A model copy represents a single instance of your imported model that is ready to serve inference requests. Amazon Bedrock determines the number of custom model units that a model copy needs when you import the custom model. </p> <p>You can use <code>CustomModelUnits</code> to estimate the cost of running your custom model. For more information, see Calculate the cost of running a custom model in the Amazon Bedrock user guide. </p>"
+    },
+    "CustomModelUnitsVersion":{
+      "type":"string",
+      "pattern":"v\\d+.\\d+"
+    },
+    "CustomizationConfig":{
+      "type":"structure",
+      "members":{
+        "distillationConfig":{
+          "shape":"DistillationConfig",
+          "documentation":"<p>The Distillation configuration for the custom model.</p>"
+        }
+      },
+      "documentation":"<p>A model customization configuration</p>",
+      "union":true
+    },
+    "CustomizationType":{
+      "type":"string",
+      "enum":[
+        "FINE_TUNING",
+        "CONTINUED_PRE_TRAINING",
+        "DISTILLATION",
+        "IMPORTED"
+      ]
+    },
+    "DataProcessingDetails":{
+      "type":"structure",
+      "members":{
+        "status":{
+          "shape":"JobStatusDetails",
+          "documentation":"<p>The status of the data processing sub-task of the job.</p>"
+        },
+        "creationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start time of the data processing sub-task of the job.</p>"
+        },
+        "lastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The latest update to the data processing sub-task of the job.</p>"
+        }
+      },
+      "documentation":"<p>For a Distillation job, the status details for the data processing sub-task of the job.</p>"
+    },
+    "DeleteAutomatedReasoningPolicyBuildWorkflowRequest":{
       "type":"structure",
       "required":[
         "policyArn",
         "buildWorkflowId",
-        "assetType"
+        "lastUpdatedAt"
       ],
       "members":{
         "policyArn":{
           "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy whose build workflow assets you want to retrieve.</p>",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy whose build workflow you want to delete.</p>",
           "location":"uri",
           "locationName":"policyArn"
         },
         "buildWorkflowId":{
           "shape":"AutomatedReasoningPolicyBuildWorkflowId",
-          "documentation":"<p>The unique identifier of the build workflow whose result assets you want to retrieve.</p>",
+          "documentation":"<p>The unique identifier of the build workflow to delete.</p>",
           "location":"uri",
           "locationName":"buildWorkflowId"
         },
-        "assetType":{
-          "shape":"AutomatedReasoningPolicyBuildResultAssetType",
-          "documentation":"<p>The type of asset to retrieve (e.g., BUILD_LOG, QUALITY_REPORT, POLICY_DEFINITION).</p>",
+        "lastUpdatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the build workflow was last updated. This is used for optimistic concurrency control to prevent accidental deletion of workflows that have been modified.</p>",
           "location":"querystring",
-          "locationName":"assetType"
+          "locationName":"updatedAt"
         }
       }
     },
-    "GetAutomatedReasoningPolicyBuildWorkflowResultAssetsResponse":{
+    "DeleteAutomatedReasoningPolicyBuildWorkflowResponse":{
       "type":"structure",
-      "required":[
-        "policyArn",
-        "buildWorkflowId"
-      ],
       "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>"
-        },
-        "buildWorkflowId":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
-          "documentation":"<p>The unique identifier of the build workflow.</p>"
-        },
-        "buildWorkflowAssets":{
-          "shape":"AutomatedReasoningPolicyBuildResultAssets",
-          "documentation":"<p>The requested build workflow asset. This is a union type that returns only one of the available asset types (logs, reports, or generated artifacts) based on the specific asset type requested in the API call.</p>"
-        }
       }
     },
-    "GetAutomatedReasoningPolicyNextScenarioRequest":{
-      "type":"structure",
-      "required":[
-        "policyArn",
-        "buildWorkflowId"
-      ],
-      "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy for which you want to get the next test scenario.</p>",
-          "location":"uri",
-          "locationName":"policyArn"
-        },
-        "buildWorkflowId":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
-          "documentation":"<p>The unique identifier of the build workflow associated with the test scenarios.</p>",
-          "location":"uri",
-          "locationName":"buildWorkflowId"
-        }
-      }
-    },
-    "GetAutomatedReasoningPolicyNextScenarioResponse":{
+    "DeleteAutomatedReasoningPolicyRequest":{
       "type":"structure",
       "required":["policyArn"],
       "members":{
         "policyArn":{
           "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>"
-        },
-        "scenario":{
-          "shape":"AutomatedReasoningPolicyScenario",
-          "documentation":"<p>The next test scenario to validate, including the test expression and expected results.</p>"
-        }
-      }
-    },
-    "GetAutomatedReasoningPolicyRequest":{
-      "type":"structure",
-      "required":["policyArn"],
-      "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy to retrieve. Can be either the unversioned ARN for the draft policy or an ARN for a specific policy version.</p>",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy to delete.</p>",
           "location":"uri",
           "locationName":"policyArn"
         }
       }
     },
-    "GetAutomatedReasoningPolicyResponse":{
+    "DeleteAutomatedReasoningPolicyResponse":{
       "type":"structure",
-      "required":[
-        "policyArn",
-        "name",
-        "version",
-        "policyId",
-        "definitionHash",
-        "updatedAt"
-      ],
       "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the policy.</p>"
-        },
-        "name":{
-          "shape":"AutomatedReasoningPolicyName",
-          "documentation":"<p>The name of the policy.</p>"
-        },
-        "version":{
-          "shape":"AutomatedReasoningPolicyVersion",
-          "documentation":"<p>The version of the policy.</p>"
-        },
-        "policyId":{
-          "shape":"AutomatedReasoningPolicyId",
-          "documentation":"<p>The unique identifier of the policy.</p>"
-        },
-        "description":{
-          "shape":"AutomatedReasoningPolicyDescription",
-          "documentation":"<p>The description of the policy.</p>"
-        },
-        "definitionHash":{
-          "shape":"AutomatedReasoningPolicyHash",
-          "documentation":"<p>The hash of the policy definition used as a concurrency token.</p>"
-        },
-        "createdAt":{
-          "shape":"Timestamp",
-          "documentation":"<p>The timestamp when the policy was created.</p>"
-        },
-        "updatedAt":{
-          "shape":"Timestamp",
-          "documentation":"<p>The timestamp when the policy was last updated.</p>"
-        }
       }
     },
-    "GetAutomatedReasoningPolicyTestCaseRequest":{
+    "DeleteAutomatedReasoningPolicyTestCaseRequest":{
       "type":"structure",
       "required":[
         "policyArn",
-        "testCaseId"
+        "testCaseId",
+        "lastUpdatedAt"
       ],
       "members":{
         "policyArn":{
@@ -677,347 +838,16 @@ bType",
         },
         "testCaseId":{
           "shape":"AutomatedReasoningPolicyTestCaseId",
-          "documentation":"<p>The unique identifier of the test to retrieve.</p>",
+          "documentation":"<p>The unique identifier of the test to delete.</p>",
           "location":"uri",
           "locationName":"testCaseId"
-        }
-      }
-    },
-    "GetAutomatedReasoningPolicyTestCaseResponse":{
-      "type":"structure",
-      "required":[
-        "policyArn",
-        "testCase"
-      ],
-      "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the policy that contains the test.</p>"
-        },
-        "testCase":{
-          "shape":"AutomatedReasoningPolicyTestCase",
-          "documentation":"<p>The test details including the content, query, expected result, and metadata.</p>"
-        }
-      }
-    },
-    "GetAutomatedReasoningPolicyTestResultRequest":{
-      "type":"structure",
-      "required":[
-        "policyArn",
-        "buildWorkflowId",
-        "testCaseId"
-      ],
-      "members":{
-        "policyArn":{
-          "shape":"AutomatedReasoningPolicyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>",
-          "location":"uri",
-          "locationName":"policyArn"
-        },
-        "buildWorkflowId":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
-          "documentation":"<p>The build workflow identifier. The build workflow must display a <code>COMPLETED</code> status to get results.</p>",
-          "location":"uri",
-          "locationName":"buildWorkflowId"
-        },
-        "testCaseId":{
-          "shape":"AutomatedReasoningPolicyTestCaseId",
-          "documentation":"<p>The unique identifier of the test for which to retrieve results.</p>",
-          "location":"uri",
-          "locationName":"testCaseId"
-        }
-      }
-    },
-    "GetAutomatedReasoningPolicyTestResultResponse":{
-      "type":"structure",
-      "required":["testResult"],
-      "members":{
-        "testResult":{
-          "shape":"AutomatedReasoningPolicyTestResult",
-          "documentation":"<p>The test result containing validation findings, execution status, and detailed analysis.</p>"
-        }
-      }
-    },
-    "GetCustomModelDeploymentRequest":{
-      "type":"structure",
-      "required":["customModelDeploymentIdentifier"],
-      "members":{
-        "customModelDeploymentIdentifier":{
-          "shape":"CustomModelDeploymentIdentifier",
-          "documentation":"<p>The Amazon Resource Name (ARN) or name of the custom model deployment to retrieve information about.</p>",
-          "location":"uri",
-          "locationName":"customModelDeploymentIdentifier"
-        }
-      }
-    },
-    "GetCustomModelDeploymentResponse":{
-      "type":"structure",
-      "required":[
-        "customModelDeploymentArn",
-        "modelDeploymentName",
-        "modelArn",
-        "createdAt",
-        "status"
-      ],
-      "members":{
-        "customModelDeploymentArn":{
-          "shape":"CustomModelDeploymentArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the custom model deployment.</p>"
-        },
-        "modelDeploymentName":{
-          "shape":"ModelDeploymentName",
-          "documentation":"<p>The name of the custom model deployment.</p>"
-        },
-        "modelArn":{
-          "shape":"CustomModelArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the custom model associated with this deployment.</p>"
-        },
-        "createdAt":{
-          "shape":"Timestamp",
-          "documentation":"<p>The date and time when the custom model deployment was created.</p>"
-        },
-        "status":{
-          "shape":"CustomModelDeploymentStatus",
-          "documentation":"<p>The status of the custom model deployment. Possible values are:</p> <ul> <li> <p> <code>CREATING</code> - The deployment is being set up and prepared for inference.</p> </li> <li> <p> <code>ACTIVE</code> - The deployment is ready and available for inference requests.</p> </li> <li> <p> <code>FAILED</code> - The deployment failed to be created or became unavailable.</p> </li> </ul>"
-        },
-        "description":{
-          "shape":"CustomModelDeploymentDescription",
-          "documentation":"<p>The description of the custom model deployment.</p>"
-        },
-        "failureMessage":{
-          "shape":"ErrorMessage",
-          "documentation":"<p>If the deployment status is <code>FAILED</code>, this field contains a message describing the failure reason.</p>"
         },
         "lastUpdatedAt":{
           "shape":"Timestamp",
-          "documentation":"<p>The date and time when the custom model deployment was last updated.</p>"
+          "documentation":"<p>The timestamp when the test was last updated. This is used as a concurrency token to prevent conflicting modifications.</p>",
+          "location":"querystring",
+          "locationName":"updatedAt"
         }
       }
     },
-    "GetCustomModelRequest":{
-      "type":"structure",
-      "required":["modelIdentifier"],
-      "members":{
-        "modelIdentifier":{
-          "shape":"ModelIdentifier",
-          "documentation":"<p>Name or Amazon Resource Name (ARN) of the custom model.</p>",
-          "location":"uri",
-          "locationName":"modelIdentifier"
-        }
-      }
-    },
-    "GetCustomModelResponse":{
-      "type":"structure",
-      "required":[
-        "modelArn",
-        "modelName",
-        "creationTime"
-      ],
-      "members":{
-        "modelArn":{
-          "shape":"ModelArn",
-          "documentation":"<p>Amazon Resource Name (ARN) associated with this model.</p>"
-        },
-        "modelName":{
-          "shape":"CustomModelName",
-          "documentation":"<p>Model name associated with this model.</p>"
-        },
-        "jobName":{
-          "shape":"JobName",
-          "documentation":"<p>Job name associated with this model.</p>"
-        },
-        "jobArn":{
-          "shape":"ModelCustomizationJobArn",
-          "documentation":"<p>Job Amazon Resource Name (ARN) associated with this model. For models that you create with the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateCustomModel.html\">CreateCustomModel</a> API operation, this is <code>NULL</code>.</p>"
-        },
-        "baseModelArn":{
-          "shape":"ModelArn",
-          "documentation":"<p>Amazon Resource Name (ARN) of the base model.</p>"
-        },
-        "customizationType":{
-          "shape":"CustomizationType",
-          "documentation":"<p>The type of model customization.</p>"
-        },
-        "modelKmsKeyArn":{
-          "shape":"KmsKeyArn",
-          "documentation":"<p>The custom model is encrypted at rest using this key.</p>"
-        },
-        "hyperParameters":{
-          "shape":"ModelCustomizationHyperParameters",
-          "documentation":"<p>Hyperparameter values associated with this model. For details on the format for different models, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models-hp.html\">Custom model hyperparameters</a>.</p>"
-        },
-        "trainingDataConfig":{
-          "shape":"TrainingDataConfig",
-          "documentation":"<p>Contains information about the training dataset.</p>"
-        },
-        "validationDataConfig":{
-          "shape":"ValidationDataConfig",
-          "documentation":"<p>Contains information about the validation dataset.</p>"
-        },
-        "outputDataConfig":{
-          "shape":"OutputDataConfig",
-          "documentation":"<p>Output data configuration associated with this custom model.</p>"
-        },
-        "trainingMetrics":{
-          "shape":"TrainingMetrics",
-          "documentation":"<p>Contains training metrics from the job creation.</p>"
-        },
-        "validationMetrics":{
-          "shape":"ValidationMetrics",
-          "documentation":"<p>The validation metrics from the job creation.</p>"
-        },
-        "creationTime":{
-          "shape":"Timestamp",
-          "documentation":"<p>Creation time of the model.</p>"
-        },
-        "customizationConfig":{
-          "shape":"CustomizationConfig",
-          "documentation":"<p>The customization configuration for the custom model.</p>"
-        },
-        "modelStatus":{
-          "shape":"ModelStatus",
-          "documentation":"<p>The current status of the custom model. Possible values include:</p> <ul> <li> <p> <code>Creating</code> - The model is being created and validated.</p> </li> <li> <p> <code>Active</code> - The model has been successfully created and is ready for use.</p> </li> <li> <p> <code>Failed</code> - The model creation process failed. Check the <code>failureMessage</code> field for details.</p> </li> </ul>"
-        },
-        "failureMessage":{
-          "shape":"ErrorMessage",
-          "documentation":"<p>A failure message for any issues that occurred when creating the custom model. This is included for only a failed CreateCustomModel operation.</p>"
-        }
-      }
-    },
-    "GetEvaluationJobRequest":{
-      "type":"structure",
-      "required":["jobIdentifier"],
-      "members":{
-        "jobIdentifier":{
-          "shape":"EvaluationJobIdentifier",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the evaluation job you want get information on.</p>",
-          "location":"uri",
-          "locationName":"jobIdentifier"
-        }
-      }
-    },
-    "GetEvaluationJobResponse":{
-      "type":"structure",
-      "required":[
-        "jobName",
-        "status",
-        "jobArn",
-        "roleArn",
-        "jobType",
-        "evaluationConfig",
-        "inferenceConfig",
-        "outputDataConfig",
-        "creationTime"
-      ],
-      "members":{
-        "jobName":{
-          "shape":"EvaluationJobName",
-          "documentation":"<p>The name for the evaluation job.</p>"
-        },
-        "status":{
-          "shape":"EvaluationJobStatus",
-          "documentation":"<p>The current status of the evaluation job.</p>"
-        },
-        "jobArn":{
-          "shape":"EvaluationJobArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the evaluation job.</p>"
-        },
-        "jobDescription":{
-          "shape":"EvaluationJobDescription",
-          "documentation":"<p>The description of the evaluation job.</p>"
-        },
-        "roleArn":{
-          "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM service role used in the evaluation job.</p>"
-        },
-        "customerEncryptionKeyId":{
-          "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the customer managed encryption key specified when the evaluation job was created.</p>"
-        },
-        "jobType":{
-          "shape":"EvaluationJobType",
-          "documentation":"<p>Specifies whether the evaluation job is automated or human-based.</p>"
-        },
-        "applicationType":{
-          "shape":"ApplicationType",
-          "documentation":"<p>Specifies whether the evaluation job is for evaluating a model or evaluating a knowledge base (retrieval and response generation).</p>"
-        },
-        "evaluationConfig":{
-          "shape":"EvaluationConfig",
-          "documentation":"<p>Contains the configuration details of either an automated or human-based evaluation job.</p>"
-        },
-        "inferenceConfig":{
-          "shape":"EvaluationInferenceConfig",
-          "documentation":"<p>Contains the configuration details of the inference model used for the evaluation job. </p>"
-        },
-        "outputDataConfig":{
-          "shape":"EvaluationOutputDataConfig",
-          "documentation":"<p>Contains the configuration details of the Amazon S3 bucket for storing the results of the evaluation job.</p>"
-        },
-        "creationTime":{
-          "shape":"Timestamp",
-          "documentation":"<p>The time the evaluation job was created.</p>"
-        },
-        "lastModifiedTime":{
-          "shape":"Timestamp",
-          "documentation":"<p>The time the evaluation job was last modified.</p>"
-        },
-        "failureMessages":{
-          "shape":"ErrorMessages",
-          "documentation":"<p>A list of strings that specify why the evaluation job failed to create.</p>"
-        }
-      }
-    },
-    "GetFoundationModelAvailabilityRequest":{
-      "type":"structure",
-      "required":["modelId"],
-      "members":{
-        "modelId":{
-          "shape":"BedrockModelId",
-          "documentation":"<p>The model Id of the foundation model.</p>",
-          "location":"uri",
-          "locationName":"modelId"
-        }
-      }
-    },
-    "GetFoundationModelAvailabilityResponse":{
-      "type":"structure",
-      "required":[
-        "modelId",
-        "agreementAvailability",
-        "authorizationStatus",
-        "entitlementAvailability",
-        "regionAvailability"
-      ],
-      "members":{
-        "modelId":{
-          "shape":"BedrockModelId",
-          "documentation":"<p>The model Id of the foundation model.</p>"
-        },
-        "agreementAvailability":{
-          "shape":"AgreementAvailability",
-          "documentation":"<p>Agreement availability. </p>"
-        },
-        "authorizationStatus":{
-          "shape":"AuthorizationStatus",
-          "documentation":"<p>Authorization status.</p>"
-        },
-        "entitlementAvailability":{
-          "shape":"EntitlementAvailability",
-          "documentation":"<p>Entitlement availability. </p>"
-        },
-        "regionAvailability":{
-          "shape":"RegionAvailability",
-          "documentation":"<p>Region availability. </p>"
-        }
-      }
-    },
-    "GetFoundationModelRequest":{
-      "type":"structure",
-      "required":["modelIdentifier"],
-      "members":{
-        "modelIdentifier":{
-          "shape":"ModelIdentifier",
-          "documentation":"<p>The model identifier. </p>",
-          "location":"uri",
-          "locationName":"model
+    "DeleteAutomatedReasoningP
