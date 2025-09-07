@@ -1,16 +1,25 @@
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const getLinkClass = (path, hasMargin) => {
+    let className = hasMargin ? 'mr-4' : '';
+    if (location.pathname === path) {
+      className += ' underline';
+    }
+    return className;
+  };
 
   return (
     <header className="flex items-center font-montsera mb-6">
-      <p className="mr-4 font-bold">Kakak Agent</p>
-      <button className="mr-4" onClick={() => navigate("/")}>
+      <p className="mr-4 text-2xl cursor-pointer" onClick={() => navigate("/")}>Kakak Agent</p>
+      <button className={getLinkClass("/", true)} onClick={() => navigate("/")}>
         Home
       </button>
-  <button className="mr-4" onClick={() => navigate("/config")}>Configuration</button>
-  <button onClick={() => navigate("/knowledge-base-upload")}>Knowledge Base Upload</button>
+  <button className={getLinkClass("/config", true)} onClick={() => navigate("/config")}>Configuration</button>
+  <button className={getLinkClass("/knowledge-base-upload", false)} onClick={() => navigate("/knowledge-base-upload")}>Knowledge Base Upload</button>
     </header>
   );
 };
