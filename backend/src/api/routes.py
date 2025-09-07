@@ -6,7 +6,7 @@ Handles incoming messages from various channels and manages agent interactions
 import asyncio
 import logging
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, Callable, List
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
@@ -18,7 +18,7 @@ from ..agent.chat_agent.chat_agent import chat_assistant
 from ..agent.daily_digest_agent.daily_digest_agent import daily_digest_assistant
 from ..agent.scheduler_agent.scheduler_agent import scheduler_assistant
 from ..agent.ticketing_agent.ticketing_agent import ticketing_assistant
-from ..services.calendar_client import get_calendar_status
+from ..services.calendar_client import get_calendar_status, get_calendar_client
 from ..database.models import get_db, Ticket, Customer
 
 
@@ -173,10 +173,51 @@ async def get_daily_digest(db: Session = Depends(get_db)):
     """
     Retrieves a daily digest summary
     """
-    digest = orchestrator_assistant(
-        query="Provide a summary of today's events, open tickets, and important information using daily_digest agent and your knowledge.."
+    digest_raw = await daily_digest_assistant(
+        query="Provide a summary of today's events, open tickets, and important information using tools and your knowledge in a buisness view."
     )
-    return {"summarise_digest": digest}
+    
+    # Extract the concise summary from the orchestrator's verbose output
+    # Look for "Daily Digest Agent Response: " and take the text after it.
+    # If not found, return the raw digest.
+    summary_prefix = "Daily Digest Agent Response: "
+    if summary_prefix in digest_raw:
+        digest_summary = digest_raw.split(summary_prefix, 1)[1].strip()
+    else:
+        digest_summary = digest_raw.strip() # Fallback to raw if prefix not found
+
+    return {"summarise_digest": digest_summary}
+
+@router.get("/upcoming_events")
+async def get_upcoming_events():
+    """
+    Retrieves upcoming calendar events from the calendar service for the next 7 days.
+    """
+    try:
+        calendar_client = get_calendar_client()
+        today = datetime.now()
+        one_week_from_now = today + timedelta(days=7)
+        
+        # Format dates as 'YYYY-MM-DD' strings for the list_events method
+        start_date_str = today.strftime("%Y-%m-%d")
+        end_date_str = one_week_from_now.strftime("%Y-%m-%d")
+
+        events_str = calendar_client.list_events(start_date_str, end_date_str)
+        
+        # The list_events method returns a string representation of the events.
+        # We need to parse it back into a Python object if it's a valid JSON string.
+        # If it's "No upcoming events found." or an error message, return it as is.
+        if events_str.startswith("[") and events_str.endswith("]"):
+            try:
+                events = json.loads(events_str)
+                return {"events": events}
+            except json.JSONDecodeError:
+                return {"message": "Failed to parse events from calendar service.", "raw_response": events_str}
+        else:
+            return {"message": events_str} # This will handle "No upcoming events found." or error messages
+    except Exception as e:
+        logger.error(f"Error retrieving upcoming events: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving upcoming events: {e}")
 
 
 @router.get("/healthz")

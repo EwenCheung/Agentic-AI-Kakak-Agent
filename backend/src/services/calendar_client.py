@@ -7,6 +7,7 @@ Provides high-level methods for calendar operations.
 
 import os
 import logging
+import json
 from typing import Dict, Any
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -88,7 +89,7 @@ class GoogleCalendarClient:
             if not events:
                 return "No upcoming events found."
             
-            return str(events)
+            return json.dumps(events)
         except HttpError as error:
             logger.error(f"An error occurred: {error}")
             return f"An error occurred: {error}"

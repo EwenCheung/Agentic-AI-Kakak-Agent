@@ -33,7 +33,6 @@ async def orchestrator_assistant(query: str) -> str:
         tools = [
             current_time, 
             chat_assistant, 
-            daily_digest_assistant, 
             scheduler_assistant, 
             ticketing_assistant
             ]
@@ -43,6 +42,6 @@ async def orchestrator_assistant(query: str) -> str:
     result = await orchestrator_agent.invoke_async(query)
 
     # The result is an AgentResult object, extract the final response text.
-    response = str(result)
+    response = str(result) # Reverted to str(result)
     return response
 
