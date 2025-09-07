@@ -7,6 +7,7 @@ import asyncio
 import logging
 import json
 import httpx
+import os
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, Callable, List
 
@@ -446,13 +447,29 @@ async def configure_channel(
             pass
 
         # Set up Telegram webhook
-        webhook_url = "https://792f3278d5f2.ngrok-free.app/telegram_webhook"
+        webhook_url = "https://34a91af0c652.ngrok-free.app/telegram_webhook"
         webhook_success = await setup_telegram_webhook(request.telegram_bot_id, webhook_url)
         
-        if webhook_success:
-            return {"message": "Channel configuration saved and webhook configured successfully."}
-        else:
-            return {"message": "Channel configuration saved, but webhook setup failed. Please check bot token."}
+        # Check if Google client secret was provided and trigger OAuth flow
+        google_auth_url = None
+        if request.client_secret_json_content and request.client_secret_json_content.strip():
+            try:
+                google_auth_url = await get_google_oauth_url(request.client_secret_json_content)
+            except Exception as e:
+                logger.error(f"Error creating Google OAuth URL: {e}")
+        
+        response_data = {
+            "message": "Channel configuration saved and webhook configured successfully." if webhook_success else "Channel configuration saved, but webhook setup failed. Please check bot token.",
+            "webhook_success": webhook_success
+        }
+        
+        # Include Google OAuth URL if available
+        if google_auth_url:
+            response_data["google_auth_url"] = google_auth_url
+            response_data["google_auth_required"] = True
+            response_data["message"] += " Please complete Google Calendar authorization."
+        
+        return response_data
             
     except Exception as e:
         logger.error(f"Error configuring channel: {e}")
@@ -486,6 +503,42 @@ async def setup_telegram_webhook(bot_token: str, webhook_url: str) -> bool:
     except Exception as e:
         logger.error(f"Exception setting up Telegram webhook: {e}")
         return False
+
+
+async def get_google_oauth_url(client_secret_json: str) -> str:
+    """
+    Generate Google OAuth URL for authorization.
+    Returns the authorization URL that frontend can use.
+    """
+    try:
+        from google_auth_oauthlib.flow import Flow
+        import tempfile
+        
+        # Create temporary file for client secret
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
+            temp_file.write(client_secret_json)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Create OAuth flow using OOB (out-of-band) flow
+            flow = Flow.from_client_secrets_file(
+                temp_file_path,
+                scopes=["https://www.googleapis.com/auth/calendar"],
+                redirect_uri="urn:ietf:wg:oauth:2.0:oob"  # OOB flow - shows code in browser
+            )
+            
+            auth_url, state = flow.authorization_url(
+                access_type='offline',
+                include_granted_scopes='true'
+            )
+            
+            return auth_url
+        finally:
+            os.remove(temp_file_path)
+            
+    except Exception as e:
+        logger.error(f"Error generating Google OAuth URL: {e}")
+        raise e
 
 @router.post("/configure_agent")
 async def configure_agent(
@@ -673,3 +726,124 @@ async def start_vectorise(background_tasks: BackgroundTasks, recreate: bool = Tr
 @router.get("/knowledge_base/vectorise/status")
 async def vectorise_status():
     return _vector_state
+
+
+# Google Calendar OAuth endpoints
+@router.get("/google/oauth/start")
+async def start_google_oauth(db_config: Session = Depends(get_config_db)):
+    """Start Google OAuth flow and return authorization URL"""
+    try:
+        from google_auth_oauthlib.flow import Flow
+        import tempfile
+        
+        # Get client secret from database
+        env_config = db_config.query(EnvConfig).first()
+        if not env_config or not env_config.client_secret_json:
+            raise HTTPException(status_code=400, detail="Google client secret not configured")
+        
+        # Create temporary file for client secret
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
+            temp_file.write(env_config.client_secret_json)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Create OAuth flow using OOB (out-of-band) flow
+            flow = Flow.from_client_secrets_file(
+                temp_file_path,
+                scopes=["https://www.googleapis.com/auth/calendar"],
+                redirect_uri="urn:ietf:wg:oauth:2.0:oob"  # OOB flow - shows code in browser
+            )
+            
+            auth_url, state = flow.authorization_url(
+                access_type='offline',
+                include_granted_scopes='true'
+            )
+            
+            return {
+                "auth_url": auth_url,
+                "state": state,
+                "message": "Open this URL in your browser to authorize Google Calendar access"
+            }
+        finally:
+            os.remove(temp_file_path)
+            
+    except Exception as e:
+        logger.error(f"Error starting Google OAuth: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start OAuth: {e}")
+
+
+class GoogleOAuthCallbackRequest(BaseModel):
+    authorization_code: str
+    state: str = None
+
+@router.post("/google/oauth/callback")
+async def google_oauth_callback(
+    request: GoogleOAuthCallbackRequest,
+    db_config: Session = Depends(get_config_db)
+):
+    """Handle OAuth callback and save credentials"""
+    try:
+        from google_auth_oauthlib.flow import Flow
+        import tempfile
+        
+        # Get client secret from database
+        env_config = db_config.query(EnvConfig).first()
+        if not env_config or not env_config.client_secret_json:
+            raise HTTPException(status_code=400, detail="Google client secret not configured")
+        
+        # Create temporary file for client secret
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
+            temp_file.write(env_config.client_secret_json)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Create OAuth flow using OOB (out-of-band) flow
+            flow = Flow.from_client_secrets_file(
+                temp_file_path,
+                scopes=["https://www.googleapis.com/auth/calendar"],
+                redirect_uri="urn:ietf:wg:oauth:2.0:oob"  # OOB flow - shows code in browser
+            )
+            
+            # Exchange authorization code for credentials
+            flow.fetch_token(code=request.authorization_code)
+            
+            # Save credentials to token.json
+            with open("token.json", "w") as token_file:
+                token_file.write(flow.credentials.to_json())
+            
+            return {
+                "message": "Google Calendar authorization successful!",
+                "status": "authorized"
+            }
+        finally:
+            os.remove(temp_file_path)
+            
+    except Exception as e:
+        logger.error(f"Error in OAuth callback: {e}")
+        raise HTTPException(status_code=500, detail=f"OAuth callback failed: {str(e)}")
+
+
+@router.get("/google/calendar/status")
+async def google_calendar_status():
+    """Check Google Calendar authorization status"""
+    try:
+        from ..services.calendar_client import get_calendar_status
+        status = get_calendar_status()
+        
+        # Check if token.json exists
+        token_exists = os.path.exists("token.json")
+        
+        return {
+            "configured": status.get("configured", False),
+            "ready": status.get("ready", False) and token_exists,
+            "token_exists": token_exists,
+            "reason": status.get("reason", "Unknown")
+        }
+    except Exception as e:
+        logger.error(f"Error checking calendar status: {e}")
+        return {
+            "configured": False,
+            "ready": False,
+            "token_exists": False,
+            "reason": f"Error: {e}"
+        }
