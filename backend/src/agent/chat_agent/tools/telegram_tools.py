@@ -5,7 +5,7 @@ from anyio import to_thread
 from strands import tool
 from sqlalchemy.orm import Session
 import telegram
-from dotenv import load_dotenv
+# Removed from dotenv import load_dotenv
 from datetime import datetime
 from ....config.settings import settings
 
@@ -44,11 +44,12 @@ async def send_message(chat_id: int, message: str) -> str:
         chat_id: The ID of the chat.
         message: The message content to send.
     """
-    if not settings.TELEGRAM_BOT_TOKEN:
-        return "Telegram bot not configured. Set the settings.TELEGRAM_BOT_TOKEN environment variable."
+    bot_token = settings.get_telegram_bot_token()
+    if not bot_token:
+        return "Telegram bot not configured. Please configure the bot token in the dashboard."
 
     # Create a new Bot instance for each call to ensure connection is fresh.
-    bot = telegram.Bot(token=settings.TELEGRAM_BOT_TOKEN)
+    bot = telegram.Bot(token=bot_token)
 
     try:
         await bot.send_message(chat_id=chat_id, text=message)

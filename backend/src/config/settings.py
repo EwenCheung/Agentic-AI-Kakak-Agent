@@ -4,8 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import ClassVar
 
 import boto3
+import os
 
 load_dotenv()
+
+from sqlalchemy.orm import Session # Added for type hinting
+from ..database.models import get_config_db, EnvConfig # Added for database access
 
 class Settings(BaseSettings):
     # AWS
@@ -16,12 +20,17 @@ class Settings(BaseSettings):
     # Bedrock
     BEDROCK_MODEL_ID: str | None = None
 
-    # Telegram Bot Token
-    TELEGRAM_BOT_TOKEN: str | None = None
-
-    # Google Calendar (MCP) integration
+    # Google Calendar (MCP) integration (re-added for .env fallback)
     GOOGLE_CALENDAR_CREDENTIALS_PATH: str | None = None
 
+    # Raw environment-provided values (DB may override when accessed via getters)
+    TELEGRAM_BOT_TOKEN: str | None = None
+    TONE_AND_MANNER: str | None = "Friendly and Professional"
+
+    # Embeddings / Vector DB (for knowledge base study)
+    EMBED_MODEL_ID: str | None = None
+    TOKENIZER_MODEL_ID: str | None = None
+    CHROMA_DOC_DB_PATH: str | None = "./src/database/vector_db/"
 
     @cached_property
     def SESSION(self):
@@ -38,6 +47,93 @@ class Settings(BaseSettings):
             region_name=self.AWS_REGION,
         )
 
+    def get_telegram_bot_token(self) -> str | None:
+        """Return Telegram bot token, preferring DB over env."""
+        try:
+            db: Session = next(get_config_db())
+            env_config = db.query(EnvConfig).first()
+            if env_config and env_config.telegram_bot_token:
+                return env_config.telegram_bot_token
+        except Exception:
+            pass
+        return self.TELEGRAM_BOT_TOKEN
+
+    def get_google_client_secret(self) -> str | None:
+        """Return Google client secret JSON content.
+
+        Priority/order:
+        1. If a value exists in DB, optionally overwrite the file at GOOGLE_CALENDAR_CREDENTIALS_PATH (if set) to keep it in sync, then return DB value.
+        2. Else, if a file exists at GOOGLE_CALENDAR_CREDENTIALS_PATH, read and return its content.
+        3. Else, return None.
+        """
+        db_value: str | None = None
+        try:
+            db: Session = next(get_config_db())
+            env_config = db.query(EnvConfig).first()
+            if env_config and env_config.client_secret_json:
+                db_value = env_config.client_secret_json
+        except Exception:
+            pass
+
+        # If DB has value, optionally persist/update file
+        if db_value:
+            path = self.GOOGLE_CALENDAR_CREDENTIALS_PATH
+            if path:
+                try:
+                    # Create parent dirs if needed
+                    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+                    # Only write if file missing or content differs
+                    needs_write = True
+                    if os.path.exists(path):
+                        try:
+                            with open(path, 'r') as existing:
+                                if existing.read() == db_value:
+                                    needs_write = False
+                        except Exception:
+                            pass
+                    if needs_write:
+                        # Validate JSON before writing
+                        import json as _json
+                        try:
+                            _json.loads(db_value)
+                        except Exception:
+                            # If invalid JSON, skip writing but still return raw DB value
+                            return db_value
+                        with open(path, 'w') as f:
+                            f.write(db_value)
+                except Exception:
+                    # Swallow file write errors; still return DB value
+                    return db_value
+            return db_value
+
+        # Fallback to file
+        if self.GOOGLE_CALENDAR_CREDENTIALS_PATH and os.path.exists(self.GOOGLE_CALENDAR_CREDENTIALS_PATH):
+            try:
+                with open(self.GOOGLE_CALENDAR_CREDENTIALS_PATH, 'r') as f:
+                    return f.read()
+            except Exception:
+                return None
+        return None
+
+    def get_tone_and_manner(self) -> str:
+        """Return tone & manner from DB or default/env value."""
+        try:
+            db: Session = next(get_config_db())
+            env_config = db.query(EnvConfig).first()
+            if env_config and env_config.tone_and_manner:
+                return env_config.tone_and_manner
+        except Exception:
+            pass
+        return self.TONE_AND_MANNER or "Friendly and Professional"
+
+    # Convenience alias properties (non-conflicting names)
+    @property
+    def GOOGLE_CLIENT_SECRET(self) -> str | None:
+        return self.get_google_client_secret()
+    @property
+    def TONE_AND_MANNER_EFFECTIVE(self) -> str:
+        return self.get_tone_and_manner()
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -51,15 +147,13 @@ def get_settings() -> Settings:
 
 settings = get_settings()
 
-# Avoid printing secrets; provide minimal startup info (can switch to logging if desired)
 try:
     import logging
     logger = logging.getLogger(__name__)
     logger.info(
-        "Config loaded: aws_region=%s bedrock_model=%s telegram_bot_token_set=%s",
+        "Config loaded: aws_region=%s bedrock_model=%s",
         settings.AWS_REGION,
         settings.BEDROCK_MODEL_ID,
-        bool(settings.TELEGRAM_BOT_TOKEN),
     )
 except Exception:
     pass

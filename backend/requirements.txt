@@ -23,3 +23,12 @@ google-auth-oauthlib
 # Database
 sqlalchemy
 pydantic-settings
+
+# Embeddings / Vector Store
+langchain
+langchain-community
+langchain-aws
+langchain-chroma
+transformers
+docling
+requests

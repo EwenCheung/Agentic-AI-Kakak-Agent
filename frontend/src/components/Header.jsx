@@ -9,7 +9,9 @@ const Header = () => {
       <button className="mr-4" onClick={() => navigate("/")}>
         Home
       </button>
-      <button onClick={() => navigate("/tickets")}>Ticket</button>
+  <button className="mr-4" onClick={() => navigate("/config")}>Configuration</button>
+  <button className="mr-4" onClick={() => navigate("/knowledge-base-upload")}>Knowledge Base Upload</button>
+  <button onClick={() => navigate("/tickets")}>Ticket</button>
     </header>
   );
 };

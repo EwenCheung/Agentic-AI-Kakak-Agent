@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import DashBoardIcon from "../assets/dashboard.png";
-import ChannelLinking from "./ChannelLinking";
 import ChatBot from "../components/ChatBot";
 import { get } from "../services/api"; // Import the get function
 
@@ -17,6 +16,8 @@ const DashboardPage = () => {
   const [dailyDigest, setDailyDigest] = useState("");
   const [loadingDigest, setLoadingDigest] = useState(true);
   const [errorDigest, setErrorDigest] = useState(null);
+
+  // Knowledge base upload state removed (moved to dedicated page)
 
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
@@ -66,6 +67,8 @@ const DashboardPage = () => {
     fetchOpenTickets();
     fetchDailyDigest();
   }, []); // Empty dependency array means these effects run once on mount
+
+  // handleKnowledgeBaseSubmit removed (moved to KnowledgeBaseUpload page)
 
   return (
     <div>
@@ -129,8 +132,9 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
+
+  {/* Knowledge Base Upload moved to its own page (/knowledge-base-upload) */}
       </div>
-      <ChannelLinking/>
       <ChatBot/>
     </div>
   );
