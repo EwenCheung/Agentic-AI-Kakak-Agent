@@ -2,3 +2,170 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import responsive utilities */
+@import './styles/responsive.css';
+
+body {
+  margin: 0;
+  font-family: "Montserrat", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Responsive text sizing */
+  font-size: 14px;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Mobile responsive base styles */
+@media (min-width: 320px) {
+  body {
+    font-size: 14px;
+  }
+}
+
+/* Tablet responsive styles */
+@media (min-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+}
+
+/* Desktop responsive styles */
+@media (min-width: 1024px) {
+  body {
+    font-size: 16px;
+  }
+}
+
+/* Large desktop responsive styles */
+@media (min-width: 1200px) {
+  body {
+    font-size: 18px;
+  }
+}
+
+/* Custom responsive utilities */
+@layer utilities {
+  /* Mobile-first responsive containers */
+  .responsive-container {
+    @apply w-full px-2 mx-auto;
+  }
+  
+  @media (min-width: 640px) {
+    .responsive-container {
+      @apply px-4;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .responsive-container {
+      @apply px-6 max-w-4xl;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .responsive-container {
+      @apply px-8 max-w-6xl;
+    }
+  }
+  
+  @media (min-width: 1200px) {
+    .responsive-container {
+      @apply px-12 max-w-7xl;
+    }
+  }
+
+  /* Responsive text sizes */
+  .text-responsive-xs {
+    @apply text-xs;
+  }
+  
+  @media (min-width: 768px) {
+    .text-responsive-xs {
+      @apply text-sm;
+    }
+  }
+  
+  .text-responsive-sm {
+    @apply text-sm;
+  }
+  
+  @media (min-width: 768px) {
+    .text-responsive-sm {
+      @apply text-base;
+    }
+  }
+  
+  .text-responsive-base {
+    @apply text-sm;
+  }
+  
+  @media (min-width: 768px) {
+    .text-responsive-base {
+      @apply text-lg;
+    }
+  }
+  
+  .text-responsive-lg {
+    @apply text-base;
+  }
+  
+  @media (min-width: 768px) {
+    .text-responsive-lg {
+      @apply text-xl;
+    }
+  }
+  
+  .text-responsive-xl {
+    @apply text-lg;
+  }
+  
+  @media (min-width: 768px) {
+    .text-responsive-xl {
+      @apply text-2xl;
+    }
+  }
+
+  /* Responsive spacing */
+  .spacing-responsive {
+    @apply p-2;
+  }
+  
+  @media (min-width: 768px) {
+    .spacing-responsive {
+      @apply p-4;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .spacing-responsive {
+      @apply p-6;
+    }
+  }
+
+  /* Responsive table styles */
+  .table-responsive {
+    @apply overflow-x-auto;
+  }
+  
+  .table-responsive table {
+    @apply min-w-full text-xs;
+  }
+  
+  @media (min-width: 768px) {
+    .table-responsive table {
+      @apply text-sm;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .table-responsive table {
+      @apply text-base;
+    }
+  }
+}

@@ -6,6 +6,7 @@ Handles incoming messages from various channels and manages agent interactions
 import asyncio
 import logging
 import json
+import httpx
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, Callable, List
 
@@ -203,22 +204,120 @@ async def telegram_webhook(update: Dict[str, Any], db: Session = Depends(get_db)
 
 @router.get("/dashboard/tickets/open", response_model=List[Dict])
 async def get_open_tickets(db: Session = Depends(get_db)):
-    """
-    Retrieves a list of all open tickets for the dashboard.
-    """
-    open_tickets = db.query(Ticket).filter(Ticket.status == "open").all()
-    return [
-        {
-            "id": ticket.id,
-            "issue": ticket.issue,
-            "priority": ticket.priority,
-            "status": ticket.status,
-            "created_at": ticket.created_at.isoformat(),
-            "updated_at": ticket.updated_at.isoformat(),
-            "assigned_to": ticket.assigned_to,
+    """Get all open tickets for dashboard display"""
+    try:
+        tickets = db.query(Ticket).filter(Ticket.status == 'open').order_by(Ticket.created_at.desc()).all()
+        
+        result = []
+        for ticket in tickets:
+            result.append({
+                "id": ticket.id,
+                "issue": ticket.issue,
+                "priority": ticket.priority,
+                "status": ticket.status,
+                "created_at": ticket.created_at.isoformat() if ticket.created_at else None,
+                "updated_at": ticket.updated_at.isoformat() if ticket.updated_at else None
+            })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error fetching open tickets: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch tickets")
+
+
+@router.get("/dashboard/tickets/all", response_model=List[Dict])
+async def get_all_tickets(db: Session = Depends(get_db)):
+    """Get all tickets (both open and closed) for dashboard display"""
+    try:
+        tickets = db.query(Ticket).order_by(Ticket.created_at.desc()).all()
+        
+        result = []
+        for ticket in tickets:
+            result.append({
+                "id": ticket.id,
+                "issue": ticket.issue,
+                "priority": ticket.priority,
+                "status": ticket.status,
+                "created_at": ticket.created_at.isoformat() if ticket.created_at else None,
+                "updated_at": ticket.updated_at.isoformat() if ticket.updated_at else None
+            })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error fetching all tickets: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch tickets")
+
+
+@router.put("/dashboard/tickets/{ticket_id}/toggle-status")
+async def toggle_ticket_status(ticket_id: int, db: Session = Depends(get_db)):
+    """Toggle ticket status between 'open' and 'closed'"""
+    try:
+        ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+        
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket not found")
+        
+        current_status = ticket.status
+        new_status = "closed" if current_status == "open" else "open"
+        
+        # Update ticket status
+        ticket.status = new_status
+        ticket.updated_at = datetime.now()
+        db.commit()
+        db.refresh(ticket)
+        
+        return {
+            "message": f"Ticket status changed from {current_status} to {new_status}",
+            "ticket_id": ticket_id,
+            "old_status": current_status,
+            "new_status": new_status
         }
-        for ticket in open_tickets
-    ]
+        
+    except Exception as e:
+        logger.error(f"Error toggling ticket status {ticket_id}: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to toggle ticket status")
+
+
+@router.put("/dashboard/tickets/{ticket_id}/close")
+async def close_ticket(ticket_id: int, db: Session = Depends(get_db)):
+    """
+    Closes a ticket by changing its status to 'inactive'.
+    """
+    ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    ticket.status = "inactive"
+    ticket.updated_at = datetime.now()
+    db.commit()
+    db.refresh(ticket)
+    
+    return {
+        "message": "Ticket closed successfully",
+        "ticket_id": ticket_id,
+        "status": ticket.status
+    }
+
+
+@router.delete("/dashboard/tickets/{ticket_id}")
+async def delete_ticket(ticket_id: int, db: Session = Depends(get_db)):
+    """
+    Deletes a ticket from the database.
+    """
+    ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    db.delete(ticket)
+    db.commit()
+    
+    return {
+        "message": "Ticket deleted successfully",
+        "ticket_id": ticket_id
+    }
 
 
 @router.get("/dashboard/customers/summaries", response_model=List[Dict])
@@ -339,15 +438,54 @@ async def configure_channel(
 
         db_config.commit()
         db_config.refresh(env_config)
+        
         # Sync in-memory settings for any legacy direct reads (preferred: use getter)
         try:
             settings.TELEGRAM_BOT_TOKEN = env_config.telegram_bot_token
         except Exception:
             pass
-        return {"message": "Channel configuration saved."}
+
+        # Set up Telegram webhook
+        webhook_url = "https://792f3278d5f2.ngrok-free.app/telegram_webhook"
+        webhook_success = await setup_telegram_webhook(request.telegram_bot_id, webhook_url)
+        
+        if webhook_success:
+            return {"message": "Channel configuration saved and webhook configured successfully."}
+        else:
+            return {"message": "Channel configuration saved, but webhook setup failed. Please check bot token."}
+            
     except Exception as e:
         logger.error(f"Error configuring channel: {e}")
         raise HTTPException(status_code=500, detail=f"Error configuring channel: {e}")
+
+
+async def setup_telegram_webhook(bot_token: str, webhook_url: str) -> bool:
+    """
+    Set up Telegram webhook by calling the Telegram Bot API.
+    Returns True if successful, False otherwise.
+    """
+    try:
+        telegram_api_url = f"https://api.telegram.org/bot{bot_token}/setWebhook"
+        payload = {"url": webhook_url}
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(telegram_api_url, json=payload)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("ok"):
+                    logger.info(f"Telegram webhook set successfully to {webhook_url}")
+                    return True
+                else:
+                    logger.error(f"Telegram API error: {result.get('description', 'Unknown error')}")
+                    return False
+            else:
+                logger.error(f"HTTP error setting webhook: {response.status_code}")
+                return False
+                
+    except Exception as e:
+        logger.error(f"Exception setting up Telegram webhook: {e}")
+        return False
 
 @router.post("/configure_agent")
 async def configure_agent(
