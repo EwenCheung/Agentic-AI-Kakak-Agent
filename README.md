@@ -1,14 +1,16 @@
 # Kakak Agent - Intelligent Multi-Channel Customer Support System
 
-**Team:** Ewen Cheung  
+**Team:** Three Musketeers -Ewen Cheung,Ng Shi Yang, Saw Yong Xuen
+
 **Competition:** AI Hackathon 2025  
-**Project Category:** Intelligent Customer Support & Business Automation
 
 ---
 
 ## 🎯 Problem Statement
 
-Small and medium businesses struggle with providing 24/7 customer support while managing limited resources. Traditional chatbots are rigid and can't handle complex, context-aware conversations or integrate with business systems like calendars and ticketing. Businesses need an intelligent agent that can:
+Most chatbot only handles preset answers, so if a customer phrases a question differently, the bot gets stuck
+
+Staff then have to manually check documents, reply, and update calendars — leading to delayed responses, missed bookings, and frustrated customers
 
 - Handle multiple channels (Telegram, future: WhatsApp, Web Chat) 
 - Understand context and maintain conversation memory
@@ -162,16 +164,7 @@ graph TB
 - **24/7 Availability**: Instant responses to inquiries anytime
 - **Intelligent Responses**: Context-aware conversations with access to company knowledge
 - **Seamless Scheduling**: Easy appointment booking through natural language
-- **Efficient Support**: Automated ticket creation and tracking
 - **Multi-Channel Access**: Consistent experience across communication platforms
-
-### For Businesses:
-- **80% Reduction** in response time (from hours to seconds)
-- **60% Cost Savings** on customer support operations
-- **Improved Customer Satisfaction** through consistent, accurate responses
-- **Enhanced Productivity** with automated appointment scheduling
-- **Data-Driven Insights** from daily digest reports and analytics
-- **Scalable Solution** that grows with business needs
 
 ### Technical Benefits:
 - **Modular Architecture**: Easy to extend with new agents and channels
@@ -192,41 +185,17 @@ graph TB
 - Support ticket system
 - Business dashboard
 
-### Phase 2 - Enhanced Intelligence (Q2 2025)
+### Phase 2 - Enhanced Intelligence
 - **Advanced NLP**: Fine-tuned models for domain-specific responses
 - **Sentiment Analysis**: Automatic escalation based on customer emotion
-- **Predictive Analytics**: Forecast support volume and scheduling patterns
 - **Multi-Language Support**: Expand to serve global customer base
 - **Voice Integration**: WhatsApp voice message processing
 
-### Phase 3 - Multi-Channel Expansion (Q3 2025)
-- **WhatsApp Business API** integration
-- **Web Chat Widget** for websites
-- **Email Support** automation
-- **Social Media** monitoring and response (Twitter, Facebook)
-- **SMS/Text** messaging support
-
-### Phase 4 - Enterprise Features (Q4 2025)
-- **Advanced Analytics Dashboard** with custom KPIs
-- **CRM Integration** (Salesforce, HubSpot, Pipedrive)
-- **Workflow Automation** with custom business rules
-- **Team Collaboration** features for support agents
-- **API Marketplace** for third-party integrations
-
-### Phase 5 - AI Innovation (2026)
+### Phase 3 - Multi-Channel Expansion
 - **Computer Vision** for document and image processing
 - **Predictive Customer Service** using historical data
-- **Automated Quality Assurance** for agent interactions
 - **Custom AI Model Training** on company-specific data
 - **Advanced Personalization** using customer behavior analysis
-
-### Market Potential:
-- **Target Market**: $13.2B global customer support software market
-- **Addressable Segment**: 50M+ SMEs worldwide requiring automated support
-- **Revenue Model**: SaaS subscription ($50-500/month based on features and volume)
-- **Growth Opportunity**: 25% annual market growth rate in AI-powered customer service
-
----
 
 ## 🚀 Getting Started
 
@@ -282,33 +251,3 @@ python -m src.main
 
 ---
 
-## 📊 Judging Criteria Alignment
-
-### Benefits Delivered (20% - 2 points)
-✅ **Clear, Scalable Benefits**: Demonstrated 80% response time reduction, 60% cost savings  
-✅ **Real Impact**: Addresses critical SME pain points with measurable ROI  
-✅ **Easy Adoption**: Simple setup process with immediate value delivery
-
-### Originality/Innovation (20% - 2 points)  
-✅ **Unique Multi-Agent Architecture**: Novel orchestrator pattern for customer support  
-✅ **Innovative RAG Integration**: Advanced document processing with semantic search  
-✅ **Creative Problem Solving**: Unified platform addressing multiple business needs
-
-### Effectiveness (20% - 2 points)
-✅ **Fully Addresses Problem**: Complete solution from customer interaction to business insights  
-✅ **Proven Results**: Working prototype with demonstrated capabilities  
-✅ **Comprehensive Coverage**: Handles scheduling, ticketing, knowledge base, and analytics
-
-### Technical Quality (20% - 2 points)
-✅ **Production-Ready Architecture**: Scalable FastAPI backend with async processing  
-✅ **Advanced AI Integration**: Bedrock, ChromaDB, and multi-agent orchestration  
-✅ **Minimal Production Work**: Containerization and deployment scripts included
-
-### Presentation Quality (20% - 2 points)
-✅ **Clear Problem Articulation**: Well-defined market need and solution fit  
-✅ **Comprehensive Demonstration**: Live system showing end-to-end workflows  
-✅ **Measurable Benefits**: Concrete metrics and business impact
-
----
-
-**Built with ❤️ by Ewen Cheung for AI Hackathon 2025**
