@@ -224,7 +224,7 @@ const KnowledgeBaseUpload = () => {
             type="button"
             onClick={startStudy}
             disabled={studyStatus === "running"}
-            className="border border-black rounded-sm px-4 py-1 bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+            className="border border-black rounded-md px-4 py-1 bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
           >
             {studyStatus === "running" ? "Studying..." : "Bot Study"}
           </button>
@@ -249,7 +249,7 @@ const KnowledgeBaseUpload = () => {
               type="file"
               accept=".pdf,.txt"
               multiple
-              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               onChange={handleFilesChange}
               required
             />
@@ -276,7 +276,7 @@ const KnowledgeBaseUpload = () => {
           )}
           <button
             type="submit"
-            className="flex justify-center border border-black rounded-sm px-6 py-1 cursor-pointer mt-2 bg-green-500 text-white hover:bg-green-600"
+            className="flex justify-center border border-black rounded-md px-6 py-1 cursor-pointer mt-2 bg-green-500 text-white hover:bg-green-600"
             disabled={uploading}
           >
             {uploading ? "Uploading..." : "Upload Documents"}
