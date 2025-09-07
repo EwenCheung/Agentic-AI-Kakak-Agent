@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import DashBoardIcon from "../assets/dashboard.png";
-import ChatBot from "../components/ChatBot";
 import { get } from "../services/api"; // Import the get function
 
 const DashboardPage = () => {
@@ -135,7 +134,6 @@ const DashboardPage = () => {
 
   {/* Knowledge Base Upload moved to its own page (/knowledge-base-upload) */}
       </div>
-      <ChatBot/>
     </div>
   );
 };

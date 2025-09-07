@@ -1,6 +1,5 @@
 import ChannelIcon from "../assets/channel-linking.png";
 import TelegramIcon from "../assets/telegram.png";
-import Configuration from "../components/Configuration";
 import React, { useState, useEffect } from "react";
 
 const ChannelLinking = () => {
@@ -103,7 +102,7 @@ const ChannelLinking = () => {
         <div className="text-xl mr-2">Channel Configuration</div> {/* Changed title */}
         <img src={ChannelIcon} alt="" className="w-5 h-5" />
         <div className="ml-auto">
-          <Configuration />
+     
         </div>
       </div>
 
