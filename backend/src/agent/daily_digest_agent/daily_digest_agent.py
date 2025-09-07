@@ -5,7 +5,7 @@ from strands_tools import current_time
 
 from ...config.settings import settings
 from ..daily_digest_agent.daily_digest_system_prompt import DAILY_DIGEST_SYSTEM_PROMPT
-from .tools.daily_digest_tools import get_open_tickets_summary, get_recent_high_priority_communications, get_upcoming_events
+from .tools.daily_digest_tools import get_open_tickets_summary, get_upcoming_events
 
 @tool
 async def daily_digest_assistant(query: str) -> str:
@@ -26,7 +26,7 @@ async def daily_digest_assistant(query: str) -> str:
     daily_digest_agent = Agent(
         model=model,
         system_prompt=DAILY_DIGEST_SYSTEM_PROMPT,
-        tools=[current_time, get_open_tickets_summary, get_recent_high_priority_communications, get_upcoming_events
+        tools=[current_time, get_open_tickets_summary, get_upcoming_events
 ],
     )
 

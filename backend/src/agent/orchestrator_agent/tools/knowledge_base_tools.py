@@ -26,7 +26,7 @@ def _get_vectorstore():
         # Default fallback
         current_file_dir = os.path.dirname(os.path.abspath(__file__))
         backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file_dir))))
-        persist_dir = os.path.join(backend_dir, "src", "database", "vector_db", "knowledge_base")
+        persist_dir = os.path.join(backend_dir, "src", "database", "knowledge_base", "knowledge_base")
     
     return Chroma(
         collection_name="knowledge_base",

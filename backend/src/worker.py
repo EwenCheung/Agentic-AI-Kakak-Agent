@@ -5,8 +5,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from .database.models import get_db, IncomingMessage, Customer
-from .agent.orchestrator_agent.orchestrator_agent import orchestrator_assistant
-from .services.summarization_service import summarization_service
+from .agent.orchestrator_agent.orchestrator_agent import memory_orchestrator
 
 async def process_message(db: Session, message: IncomingMessage):
     """The core logic to process a single message from the queue."""
@@ -32,7 +31,7 @@ async def process_message(db: Session, message: IncomingMessage):
         db.commit()
         db.refresh(customer)
 
-    # 2. Append new message to conversation history
+    # 2. Log message to conversation_history for business audit trail
     new_history_entry = f"[{first_name} at {message_time}]: {text}\n"
     if customer.conversation_history:
         customer.conversation_history += new_history_entry
@@ -40,37 +39,29 @@ async def process_message(db: Session, message: IncomingMessage):
         customer.conversation_history = new_history_entry
     db.commit()
 
-    # 3. Construct the full context for the orchestrator
+    # 3. Process message with memory-aware orchestrator (Mem0 for AI intelligence)
+    # Using chat_id as user_id for memory isolation
     orchestrator_query = f"""A new message has been received from a customer.
 
 ## Customer Details:
 - Name: {customer.name}
 - Telegram Chat ID: {customer.telegram_chat_id}
+- Message: [{first_name} at {message_time}]: {text}
 
-## Conversation Summary:
-{customer.conversation_summary or 'No summary yet.'}
+Please analyze this message and determine the appropriate next action. Use memory to maintain context."""
 
-## Recent Conversation History:
-{customer.conversation_history}
-
-Please analyze the full context and the latest message to determine the appropriate next action."""
-
-    # 4. Trigger orchestrator (this is a blocking call)
+    # 4. Trigger memory-aware orchestrator with chat_id as user_id
     try:
-        await orchestrator_assistant(query=orchestrator_query)
+        result = await memory_orchestrator.process_message(
+            message=orchestrator_query,
+            chat_id=str(chat_id)  # Using chat_id for memory isolation
+        )
+        print(f"Orchestrator result: {result}")
     except Exception as e:
         print(f"Error processing message {message.id} with orchestrator: {e}")
         message.status = 'failed'
         db.commit()
         return
-
-    # 5. Check for and trigger summarization if history is long
-    if customer.conversation_history and len(customer.conversation_history) > 4000:
-        print(f"History for customer {customer.id} is long, triggering summarization.")
-        try:
-            summarization_service.summarize_and_update_customer_conversation(customer.id)
-        except Exception as e:
-            print(f"Error summarizing conversation for customer {customer.id}: {e}")
 
     print(f"Finished processing message id: {message.id}")
 

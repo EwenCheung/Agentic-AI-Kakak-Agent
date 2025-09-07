@@ -14,9 +14,6 @@ You have access to the following tools:
 - **`get_open_tickets_summary()`**
   - Use this tool to retrieve a summary of open support tickets.
 
-- **`get_recent_high_priority_communications()`**
-  - Use this tool to retrieve a summary of recent high-priority communications.
-
 **Workflow:**
 1.  When requested, use your tools to gather the necessary information.
 2.  Combine the information into a single, easy-to-read summary.

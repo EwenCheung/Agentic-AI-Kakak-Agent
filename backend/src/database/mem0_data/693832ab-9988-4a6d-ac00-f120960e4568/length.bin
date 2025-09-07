@@ -1,0 +1,1023 @@
+bType",
+          "documentation":"<p>Specifies whether the evaluation job is automated or human-based.</p>"
+        },
+        "evaluationTaskTypes":{
+          "shape":"EvaluationTaskTypes",
+          "documentation":"<p>The type of task for model evaluation.</p>"
+        },
+        "modelIdentifiers":{
+          "shape":"EvaluationBedrockModelIdentifiers",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the model(s) used for the evaluation job.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Inference identifiers should be retrieved from the inferenceConfigSummary",
+          "deprecatedSince":"2025-03-07"
+        },
+        "ragIdentifiers":{
+          "shape":"EvaluationBedrockKnowledgeBaseIdentifiers",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the knowledge base resources used for a knowledge base evaluation job.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Inference identifiers should be retrieved from the inferenceConfigSummary",
+          "deprecatedSince":"2025-03-07"
+        },
+        "evaluatorModelIdentifiers":{
+          "shape":"EvaluatorModelIdentifiers",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the models used to compute the metrics for a knowledge base evaluation job.</p>"
+        },
+        "customMetricsEvaluatorModelIdentifiers":{
+          "shape":"EvaluatorModelIdentifiers",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the models used to compute custom metrics in an Amazon Bedrock evaluation job.</p>"
+        },
+        "inferenceConfigSummary":{
+          "shape":"EvaluationInferenceConfigSummary",
+          "documentation":"<p>Identifies the models, Knowledge Bases, or other RAG sources evaluated in a model or Knowledge Base evaluation job.</p>"
+        },
+        "applicationType":{
+          "shape":"ApplicationType",
+          "documentation":"<p>Specifies whether the evaluation job is for evaluating a model or evaluating a knowledge base (retrieval and response generation).</p>"
+        }
+      },
+      "documentation":"<p>Summary information of an evaluation job.</p>"
+    },
+    "EvaluationTaskType":{
+      "type":"string",
+      "enum":[
+        "Summarization",
+        "Classification",
+        "QuestionAndAnswer",
+        "Generation",
+        "Custom"
+      ],
+      "max":63,
+      "min":1,
+      "pattern":"[A-Za-z0-9]+"
+    },
+    "EvaluationTaskTypes":{
+      "type":"list",
+      "member":{"shape":"EvaluationTaskType"},
+      "max":5,
+      "min":1
+    },
+    "EvaluatorModelConfig":{
+      "type":"structure",
+      "members":{
+        "bedrockEvaluatorModels":{
+          "shape":"BedrockEvaluatorModels",
+          "documentation":"<p>The evaluator model used in knowledge base evaluation job or in model evaluation job that use a model as judge. This model computes all evaluation related metrics.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the model configuration for the evaluator model. <code>EvaluatorModelConfig</code> is required for evaluation jobs that use a knowledge base or in model evaluation job that use a model as judge. This model computes all evaluation related metrics.</p>",
+      "union":true
+    },
+    "EvaluatorModelIdentifier":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:((:foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|([0-9]{12}:inference-profile/(([a-z-]{2,8}.)[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63})))))$|(^[a-z0-9-]+[.][a-z0-9-]+([.][a-z0-9-]+)*(:[a-z0-9-]+)?$)|^[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2}(/[a-z0-9]{12}|)"
+    },
+    "EvaluatorModelIdentifiers":{
+      "type":"list",
+      "member":{"shape":"EvaluatorModelIdentifier"},
+      "max":1,
+      "min":0
+    },
+    "ExportAutomatedReasoningPolicyVersionRequest":{
+      "type":"structure",
+      "required":["policyArn"],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy to export. Can be either the unversioned ARN for the draft policy or a versioned ARN for a specific policy version.</p>",
+          "location":"uri",
+          "locationName":"policyArn"
+        }
+      }
+    },
+    "ExportAutomatedReasoningPolicyVersionResponse":{
+      "type":"structure",
+      "required":["policyDefinition"],
+      "members":{
+        "policyDefinition":{
+          "shape":"AutomatedReasoningPolicyDefinition",
+          "documentation":"<p>The exported policy definition containing the formal logic rules, variables, and custom variable types.</p>"
+        }
+      },
+      "payload":"policyDefinition"
+    },
+    "ExternalSource":{
+      "type":"structure",
+      "required":["sourceType"],
+      "members":{
+        "sourceType":{
+          "shape":"ExternalSourceType",
+          "documentation":"<p>The source type of the external source wrapper object.</p>"
+        },
+        "s3Location":{
+          "shape":"S3ObjectDoc",
+          "documentation":"<p>The S3 location of the external source wrapper object.</p>"
+        },
+        "byteContent":{
+          "shape":"ByteContentDoc",
+          "documentation":"<p>The identifier, content type, and data of the external source wrapper object.</p>"
+        }
+      },
+      "documentation":"<p>The unique external source of the content contained in the wrapper object.</p>"
+    },
+    "ExternalSourceType":{
+      "type":"string",
+      "enum":[
+        "S3",
+        "BYTE_CONTENT"
+      ]
+    },
+    "ExternalSources":{
+      "type":"list",
+      "member":{"shape":"ExternalSource"},
+      "max":1,
+      "min":1
+    },
+    "ExternalSourcesGenerationConfiguration":{
+      "type":"structure",
+      "members":{
+        "promptTemplate":{
+          "shape":"PromptTemplate",
+          "documentation":"<p>Contains the template for the prompt for the external source wrapper object.</p>"
+        },
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>Configuration details for the guardrail.</p>"
+        },
+        "kbInferenceConfig":{
+          "shape":"KbInferenceConfig",
+          "documentation":"<p>Configuration details for inference when using <code>RetrieveAndGenerate</code> to generate responses while using an external source.</p>"
+        },
+        "additionalModelRequestFields":{
+          "shape":"AdditionalModelRequestFields",
+          "documentation":"<p>Additional model parameters and their corresponding values not included in the text inference configuration for an external source. Takes in custom model parameters specific to the language model being used.</p>"
+        }
+      },
+      "documentation":"<p>The response generation configuration of the external source wrapper object.</p>"
+    },
+    "ExternalSourcesRetrieveAndGenerateConfiguration":{
+      "type":"structure",
+      "required":[
+        "modelArn",
+        "sources"
+      ],
+      "members":{
+        "modelArn":{
+          "shape":"BedrockModelArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the foundation model or <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html\">inference profile</a> used to generate responses. </p>"
+        },
+        "sources":{
+          "shape":"ExternalSources",
+          "documentation":"<p>The document for the external source wrapper object in the <code>retrieveAndGenerate</code> function.</p>"
+        },
+        "generationConfiguration":{
+          "shape":"ExternalSourcesGenerationConfiguration",
+          "documentation":"<p>Contains configurations details for response generation based on retrieved text chunks.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of the external source wrapper object in the <code>retrieveAndGenerate</code> function.</p>"
+    },
+    "FieldForReranking":{
+      "type":"structure",
+      "required":["fieldName"],
+      "members":{
+        "fieldName":{
+          "shape":"FieldForRerankingFieldNameString",
+          "documentation":"<p>The name of the metadata field to be used during the reranking process.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a field to be used during the reranking process in a Knowledge Base vector search. This structure identifies metadata fields that should be considered when reordering search results to improve relevance.</p>"
+    },
+    "FieldForRerankingFieldNameString":{
+      "type":"string",
+      "max":2000,
+      "min":1
+    },
+    "FieldsForReranking":{
+      "type":"list",
+      "member":{"shape":"FieldForReranking"},
+      "max":100,
+      "min":1,
+      "sensitive":true
+    },
+    "FilterAttribute":{
+      "type":"structure",
+      "required":[
+        "key",
+        "value"
+      ],
+      "members":{
+        "key":{
+          "shape":"FilterKey",
+          "documentation":"<p>The name of metadata attribute/field, which must match the name in your data source/document metadata.</p>"
+        },
+        "value":{
+          "shape":"FilterValue",
+          "documentation":"<p>The value of the metadata attribute/field.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the name of the metadata attribute/field to apply filters. You must match the name of the attribute/field in your data source/document metadata.</p>"
+    },
+    "FilterKey":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
+    "FilterValue":{
+      "type":"structure",
+      "members":{
+      },
+      "document":true
+    },
+    "FineTuningJobStatus":{
+      "type":"string",
+      "enum":[
+        "InProgress",
+        "Completed",
+        "Failed",
+        "Stopping",
+        "Stopped"
+      ]
+    },
+    "Float":{
+      "type":"float",
+      "box":true
+    },
+    "FoundationModelArn":{
+      "type":"string",
+      "pattern":"arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}::foundation-model/[a-z0-9-]{1,63}[.]{1}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2}"
+    },
+    "FoundationModelDetails":{
+      "type":"structure",
+      "required":[
+        "modelArn",
+        "modelId"
+      ],
+      "members":{
+        "modelArn":{
+          "shape":"FoundationModelArn",
+          "documentation":"<p>The model Amazon Resource Name (ARN).</p>"
+        },
+        "modelId":{
+          "shape":"BedrockModelId",
+          "documentation":"<p>The model identifier.</p>"
+        },
+        "modelName":{
+          "shape":"BrandedName",
+          "documentation":"<p>The model name.</p>"
+        },
+        "providerName":{
+          "shape":"BrandedName",
+          "documentation":"<p>The model's provider name.</p>"
+        },
+        "inputModalities":{
+          "shape":"ModelModalityList",
+          "documentation":"<p>The input modalities that the model supports.</p>"
+        },
+        "outputModalities":{
+          "shape":"ModelModalityList",
+          "documentation":"<p>The output modalities that the model supports.</p>"
+        },
+        "responseStreamingSupported":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the model supports streaming.</p>"
+        },
+        "customizationsSupported":{
+          "shape":"ModelCustomizationList",
+          "documentation":"<p>The customization that the model supports.</p>"
+        },
+        "inferenceTypesSupported":{
+          "shape":"InferenceTypeList",
+          "documentation":"<p>The inference types that the model supports.</p>"
+        },
+        "modelLifecycle":{
+          "shape":"FoundationModelLifecycle",
+          "documentation":"<p>Contains details about whether a model version is available or deprecated</p>"
+        }
+      },
+      "documentation":"<p>Information about a foundation model.</p>"
+    },
+    "FoundationModelLifecycle":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"FoundationModelLifecycleStatus",
+          "documentation":"<p>Specifies whether a model version is available (<code>ACTIVE</code>) or deprecated (<code>LEGACY</code>.</p>"
+        }
+      },
+      "documentation":"<p>Details about whether a model version is available or deprecated.</p>"
+    },
+    "FoundationModelLifecycleStatus":{
+      "type":"string",
+      "enum":[
+        "ACTIVE",
+        "LEGACY"
+      ]
+    },
+    "FoundationModelSummary":{
+      "type":"structure",
+      "required":[
+        "modelArn",
+        "modelId"
+      ],
+      "members":{
+        "modelArn":{
+          "shape":"FoundationModelArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the foundation model.</p>"
+        },
+        "modelId":{
+          "shape":"BedrockModelId",
+          "documentation":"<p>The model ID of the foundation model.</p>"
+        },
+        "modelName":{
+          "shape":"BrandedName",
+          "documentation":"<p>The name of the model.</p>"
+        },
+        "providerName":{
+          "shape":"BrandedName",
+          "documentation":"<p>The model's provider name.</p>"
+        },
+        "inputModalities":{
+          "shape":"ModelModalityList",
+          "documentation":"<p>The input modalities that the model supports.</p>"
+        },
+        "outputModalities":{
+          "shape":"ModelModalityList",
+          "documentation":"<p>The output modalities that the model supports.</p>"
+        },
+        "responseStreamingSupported":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the model supports streaming.</p>"
+        },
+        "customizationsSupported":{
+          "shape":"ModelCustomizationList",
+          "documentation":"<p>Whether the model supports fine-tuning or continual pre-training.</p>"
+        },
+        "inferenceTypesSupported":{
+          "shape":"InferenceTypeList",
+          "documentation":"<p>The inference types that the model supports.</p>"
+        },
+        "modelLifecycle":{
+          "shape":"FoundationModelLifecycle",
+          "documentation":"<p>Contains details about whether a model version is available or deprecated.</p>"
+        }
+      },
+      "documentation":"<p>Summary information for a foundation model.</p>"
+    },
+    "FoundationModelSummaryList":{
+      "type":"list",
+      "member":{"shape":"FoundationModelSummary"}
+    },
+    "GenerationConfiguration":{
+      "type":"structure",
+      "members":{
+        "promptTemplate":{
+          "shape":"PromptTemplate",
+          "documentation":"<p>Contains the template for the prompt that's sent to the model for response generation.</p>"
+        },
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>Contains configuration details for the guardrail.</p>"
+        },
+        "kbInferenceConfig":{
+          "shape":"KbInferenceConfig",
+          "documentation":"<p>Contains configuration details for inference for knowledge base retrieval and response generation.</p>"
+        },
+        "additionalModelRequestFields":{
+          "shape":"AdditionalModelRequestFields",
+          "documentation":"<p>Additional model parameters and corresponding values not included in the <code>textInferenceConfig</code> structure for a knowledge base. This allows you to provide custom model parameters specific to the language model being used.</p>"
+        }
+      },
+      "documentation":"<p>The configuration details for response generation based on retrieved text chunks.</p>"
+    },
+    "GetAutomatedReasoningPolicyAnnotationsRequest":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "buildWorkflowId"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy whose annotations you want to retrieve.</p>",
+          "location":"uri",
+          "locationName":"policyArn"
+        },
+        "buildWorkflowId":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
+          "documentation":"<p>The unique identifier of the build workflow whose annotations you want to retrieve.</p>",
+          "location":"uri",
+          "locationName":"buildWorkflowId"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyAnnotationsResponse":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "name",
+        "buildWorkflowId",
+        "annotations",
+        "annotationSetHash",
+        "updatedAt"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>"
+        },
+        "name":{
+          "shape":"AutomatedReasoningPolicyName",
+          "documentation":"<p>The name of the Automated Reasoning policy.</p>"
+        },
+        "buildWorkflowId":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
+          "documentation":"<p>The unique identifier of the build workflow.</p>"
+        },
+        "annotations":{
+          "shape":"AutomatedReasoningPolicyAnnotationList",
+          "documentation":"<p>The current set of annotations containing rules, variables, and types extracted from the source documents. These can be modified before finalizing the policy.</p>"
+        },
+        "annotationSetHash":{
+          "shape":"AutomatedReasoningPolicyHash",
+          "documentation":"<p>A hash value representing the current state of the annotations. This is used for optimistic concurrency control when updating annotations.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the annotations were last updated.</p>"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyBuildWorkflowRequest":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "buildWorkflowId"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy whose build workflow you want to retrieve.</p>",
+          "location":"uri",
+          "locationName":"policyArn"
+        },
+        "buildWorkflowId":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
+          "documentation":"<p>The unique identifier of the build workflow to retrieve.</p>",
+          "location":"uri",
+          "locationName":"buildWorkflowId"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyBuildWorkflowResponse":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "buildWorkflowId",
+        "status",
+        "buildWorkflowType",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>"
+        },
+        "buildWorkflowId":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
+          "documentation":"<p>The unique identifier of the build workflow.</p>"
+        },
+        "status":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowStatus",
+          "documentation":"<p>The current status of the build workflow (e.g., RUNNING, COMPLETED, FAILED, CANCELLED).</p>"
+        },
+        "buildWorkflowType":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowType",
+          "documentation":"<p>The type of build workflow being executed (e.g., DOCUMENT_INGESTION, POLICY_REPAIR).</p>"
+        },
+        "documentName":{
+          "shape":"AutomatedReasoningPolicyBuildDocumentName",
+          "documentation":"<p>The name of the source document used in the build workflow.</p>"
+        },
+        "documentContentType":{
+          "shape":"AutomatedReasoningPolicyBuildDocumentContentType",
+          "documentation":"<p>The content type of the source document (e.g., text/plain, application/pdf).</p>"
+        },
+        "documentDescription":{
+          "shape":"AutomatedReasoningPolicyBuildDocumentDescription",
+          "documentation":"<p>A detailed description of the document's content and how it should be used in the policy generation process.</p>"
+        },
+        "createdAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the build workflow was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the build workflow was last updated.</p>"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyBuildWorkflowResultAssetsRequest":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "buildWorkflowId",
+        "assetType"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy whose build workflow assets you want to retrieve.</p>",
+          "location":"uri",
+          "locationName":"policyArn"
+        },
+        "buildWorkflowId":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
+          "documentation":"<p>The unique identifier of the build workflow whose result assets you want to retrieve.</p>",
+          "location":"uri",
+          "locationName":"buildWorkflowId"
+        },
+        "assetType":{
+          "shape":"AutomatedReasoningPolicyBuildResultAssetType",
+          "documentation":"<p>The type of asset to retrieve (e.g., BUILD_LOG, QUALITY_REPORT, POLICY_DEFINITION).</p>",
+          "location":"querystring",
+          "locationName":"assetType"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyBuildWorkflowResultAssetsResponse":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "buildWorkflowId"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>"
+        },
+        "buildWorkflowId":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
+          "documentation":"<p>The unique identifier of the build workflow.</p>"
+        },
+        "buildWorkflowAssets":{
+          "shape":"AutomatedReasoningPolicyBuildResultAssets",
+          "documentation":"<p>The requested build workflow asset. This is a union type that returns only one of the available asset types (logs, reports, or generated artifacts) based on the specific asset type requested in the API call.</p>"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyNextScenarioRequest":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "buildWorkflowId"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy for which you want to get the next test scenario.</p>",
+          "location":"uri",
+          "locationName":"policyArn"
+        },
+        "buildWorkflowId":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
+          "documentation":"<p>The unique identifier of the build workflow associated with the test scenarios.</p>",
+          "location":"uri",
+          "locationName":"buildWorkflowId"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyNextScenarioResponse":{
+      "type":"structure",
+      "required":["policyArn"],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>"
+        },
+        "scenario":{
+          "shape":"AutomatedReasoningPolicyScenario",
+          "documentation":"<p>The next test scenario to validate, including the test expression and expected results.</p>"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyRequest":{
+      "type":"structure",
+      "required":["policyArn"],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy to retrieve. Can be either the unversioned ARN for the draft policy or an ARN for a specific policy version.</p>",
+          "location":"uri",
+          "locationName":"policyArn"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyResponse":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "name",
+        "version",
+        "policyId",
+        "definitionHash",
+        "updatedAt"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the policy.</p>"
+        },
+        "name":{
+          "shape":"AutomatedReasoningPolicyName",
+          "documentation":"<p>The name of the policy.</p>"
+        },
+        "version":{
+          "shape":"AutomatedReasoningPolicyVersion",
+          "documentation":"<p>The version of the policy.</p>"
+        },
+        "policyId":{
+          "shape":"AutomatedReasoningPolicyId",
+          "documentation":"<p>The unique identifier of the policy.</p>"
+        },
+        "description":{
+          "shape":"AutomatedReasoningPolicyDescription",
+          "documentation":"<p>The description of the policy.</p>"
+        },
+        "definitionHash":{
+          "shape":"AutomatedReasoningPolicyHash",
+          "documentation":"<p>The hash of the policy definition used as a concurrency token.</p>"
+        },
+        "createdAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the policy was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the policy was last updated.</p>"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyTestCaseRequest":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "testCaseId"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy that contains the test.</p>",
+          "location":"uri",
+          "locationName":"policyArn"
+        },
+        "testCaseId":{
+          "shape":"AutomatedReasoningPolicyTestCaseId",
+          "documentation":"<p>The unique identifier of the test to retrieve.</p>",
+          "location":"uri",
+          "locationName":"testCaseId"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyTestCaseResponse":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "testCase"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the policy that contains the test.</p>"
+        },
+        "testCase":{
+          "shape":"AutomatedReasoningPolicyTestCase",
+          "documentation":"<p>The test details including the content, query, expected result, and metadata.</p>"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyTestResultRequest":{
+      "type":"structure",
+      "required":[
+        "policyArn",
+        "buildWorkflowId",
+        "testCaseId"
+      ],
+      "members":{
+        "policyArn":{
+          "shape":"AutomatedReasoningPolicyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy.</p>",
+          "location":"uri",
+          "locationName":"policyArn"
+        },
+        "buildWorkflowId":{
+          "shape":"AutomatedReasoningPolicyBuildWorkflowId",
+          "documentation":"<p>The build workflow identifier. The build workflow must display a <code>COMPLETED</code> status to get results.</p>",
+          "location":"uri",
+          "locationName":"buildWorkflowId"
+        },
+        "testCaseId":{
+          "shape":"AutomatedReasoningPolicyTestCaseId",
+          "documentation":"<p>The unique identifier of the test for which to retrieve results.</p>",
+          "location":"uri",
+          "locationName":"testCaseId"
+        }
+      }
+    },
+    "GetAutomatedReasoningPolicyTestResultResponse":{
+      "type":"structure",
+      "required":["testResult"],
+      "members":{
+        "testResult":{
+          "shape":"AutomatedReasoningPolicyTestResult",
+          "documentation":"<p>The test result containing validation findings, execution status, and detailed analysis.</p>"
+        }
+      }
+    },
+    "GetCustomModelDeploymentRequest":{
+      "type":"structure",
+      "required":["customModelDeploymentIdentifier"],
+      "members":{
+        "customModelDeploymentIdentifier":{
+          "shape":"CustomModelDeploymentIdentifier",
+          "documentation":"<p>The Amazon Resource Name (ARN) or name of the custom model deployment to retrieve information about.</p>",
+          "location":"uri",
+          "locationName":"customModelDeploymentIdentifier"
+        }
+      }
+    },
+    "GetCustomModelDeploymentResponse":{
+      "type":"structure",
+      "required":[
+        "customModelDeploymentArn",
+        "modelDeploymentName",
+        "modelArn",
+        "createdAt",
+        "status"
+      ],
+      "members":{
+        "customModelDeploymentArn":{
+          "shape":"CustomModelDeploymentArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the custom model deployment.</p>"
+        },
+        "modelDeploymentName":{
+          "shape":"ModelDeploymentName",
+          "documentation":"<p>The name of the custom model deployment.</p>"
+        },
+        "modelArn":{
+          "shape":"CustomModelArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the custom model associated with this deployment.</p>"
+        },
+        "createdAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the custom model deployment was created.</p>"
+        },
+        "status":{
+          "shape":"CustomModelDeploymentStatus",
+          "documentation":"<p>The status of the custom model deployment. Possible values are:</p> <ul> <li> <p> <code>CREATING</code> - The deployment is being set up and prepared for inference.</p> </li> <li> <p> <code>ACTIVE</code> - The deployment is ready and available for inference requests.</p> </li> <li> <p> <code>FAILED</code> - The deployment failed to be created or became unavailable.</p> </li> </ul>"
+        },
+        "description":{
+          "shape":"CustomModelDeploymentDescription",
+          "documentation":"<p>The description of the custom model deployment.</p>"
+        },
+        "failureMessage":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>If the deployment status is <code>FAILED</code>, this field contains a message describing the failure reason.</p>"
+        },
+        "lastUpdatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the custom model deployment was last updated.</p>"
+        }
+      }
+    },
+    "GetCustomModelRequest":{
+      "type":"structure",
+      "required":["modelIdentifier"],
+      "members":{
+        "modelIdentifier":{
+          "shape":"ModelIdentifier",
+          "documentation":"<p>Name or Amazon Resource Name (ARN) of the custom model.</p>",
+          "location":"uri",
+          "locationName":"modelIdentifier"
+        }
+      }
+    },
+    "GetCustomModelResponse":{
+      "type":"structure",
+      "required":[
+        "modelArn",
+        "modelName",
+        "creationTime"
+      ],
+      "members":{
+        "modelArn":{
+          "shape":"ModelArn",
+          "documentation":"<p>Amazon Resource Name (ARN) associated with this model.</p>"
+        },
+        "modelName":{
+          "shape":"CustomModelName",
+          "documentation":"<p>Model name associated with this model.</p>"
+        },
+        "jobName":{
+          "shape":"JobName",
+          "documentation":"<p>Job name associated with this model.</p>"
+        },
+        "jobArn":{
+          "shape":"ModelCustomizationJobArn",
+          "documentation":"<p>Job Amazon Resource Name (ARN) associated with this model. For models that you create with the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateCustomModel.html\">CreateCustomModel</a> API operation, this is <code>NULL</code>.</p>"
+        },
+        "baseModelArn":{
+          "shape":"ModelArn",
+          "documentation":"<p>Amazon Resource Name (ARN) of the base model.</p>"
+        },
+        "customizationType":{
+          "shape":"CustomizationType",
+          "documentation":"<p>The type of model customization.</p>"
+        },
+        "modelKmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The custom model is encrypted at rest using this key.</p>"
+        },
+        "hyperParameters":{
+          "shape":"ModelCustomizationHyperParameters",
+          "documentation":"<p>Hyperparameter values associated with this model. For details on the format for different models, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models-hp.html\">Custom model hyperparameters</a>.</p>"
+        },
+        "trainingDataConfig":{
+          "shape":"TrainingDataConfig",
+          "documentation":"<p>Contains information about the training dataset.</p>"
+        },
+        "validationDataConfig":{
+          "shape":"ValidationDataConfig",
+          "documentation":"<p>Contains information about the validation dataset.</p>"
+        },
+        "outputDataConfig":{
+          "shape":"OutputDataConfig",
+          "documentation":"<p>Output data configuration associated with this custom model.</p>"
+        },
+        "trainingMetrics":{
+          "shape":"TrainingMetrics",
+          "documentation":"<p>Contains training metrics from the job creation.</p>"
+        },
+        "validationMetrics":{
+          "shape":"ValidationMetrics",
+          "documentation":"<p>The validation metrics from the job creation.</p>"
+        },
+        "creationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>Creation time of the model.</p>"
+        },
+        "customizationConfig":{
+          "shape":"CustomizationConfig",
+          "documentation":"<p>The customization configuration for the custom model.</p>"
+        },
+        "modelStatus":{
+          "shape":"ModelStatus",
+          "documentation":"<p>The current status of the custom model. Possible values include:</p> <ul> <li> <p> <code>Creating</code> - The model is being created and validated.</p> </li> <li> <p> <code>Active</code> - The model has been successfully created and is ready for use.</p> </li> <li> <p> <code>Failed</code> - The model creation process failed. Check the <code>failureMessage</code> field for details.</p> </li> </ul>"
+        },
+        "failureMessage":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>A failure message for any issues that occurred when creating the custom model. This is included for only a failed CreateCustomModel operation.</p>"
+        }
+      }
+    },
+    "GetEvaluationJobRequest":{
+      "type":"structure",
+      "required":["jobIdentifier"],
+      "members":{
+        "jobIdentifier":{
+          "shape":"EvaluationJobIdentifier",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the evaluation job you want get information on.</p>",
+          "location":"uri",
+          "locationName":"jobIdentifier"
+        }
+      }
+    },
+    "GetEvaluationJobResponse":{
+      "type":"structure",
+      "required":[
+        "jobName",
+        "status",
+        "jobArn",
+        "roleArn",
+        "jobType",
+        "evaluationConfig",
+        "inferenceConfig",
+        "outputDataConfig",
+        "creationTime"
+      ],
+      "members":{
+        "jobName":{
+          "shape":"EvaluationJobName",
+          "documentation":"<p>The name for the evaluation job.</p>"
+        },
+        "status":{
+          "shape":"EvaluationJobStatus",
+          "documentation":"<p>The current status of the evaluation job.</p>"
+        },
+        "jobArn":{
+          "shape":"EvaluationJobArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the evaluation job.</p>"
+        },
+        "jobDescription":{
+          "shape":"EvaluationJobDescription",
+          "documentation":"<p>The description of the evaluation job.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM service role used in the evaluation job.</p>"
+        },
+        "customerEncryptionKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the customer managed encryption key specified when the evaluation job was created.</p>"
+        },
+        "jobType":{
+          "shape":"EvaluationJobType",
+          "documentation":"<p>Specifies whether the evaluation job is automated or human-based.</p>"
+        },
+        "applicationType":{
+          "shape":"ApplicationType",
+          "documentation":"<p>Specifies whether the evaluation job is for evaluating a model or evaluating a knowledge base (retrieval and response generation).</p>"
+        },
+        "evaluationConfig":{
+          "shape":"EvaluationConfig",
+          "documentation":"<p>Contains the configuration details of either an automated or human-based evaluation job.</p>"
+        },
+        "inferenceConfig":{
+          "shape":"EvaluationInferenceConfig",
+          "documentation":"<p>Contains the configuration details of the inference model used for the evaluation job. </p>"
+        },
+        "outputDataConfig":{
+          "shape":"EvaluationOutputDataConfig",
+          "documentation":"<p>Contains the configuration details of the Amazon S3 bucket for storing the results of the evaluation job.</p>"
+        },
+        "creationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time the evaluation job was created.</p>"
+        },
+        "lastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time the evaluation job was last modified.</p>"
+        },
+        "failureMessages":{
+          "shape":"ErrorMessages",
+          "documentation":"<p>A list of strings that specify why the evaluation job failed to create.</p>"
+        }
+      }
+    },
+    "GetFoundationModelAvailabilityRequest":{
+      "type":"structure",
+      "required":["modelId"],
+      "members":{
+        "modelId":{
+          "shape":"BedrockModelId",
+          "documentation":"<p>The model Id of the foundation model.</p>",
+          "location":"uri",
+          "locationName":"modelId"
+        }
+      }
+    },
+    "GetFoundationModelAvailabilityResponse":{
+      "type":"structure",
+      "required":[
+        "modelId",
+        "agreementAvailability",
+        "authorizationStatus",
+        "entitlementAvailability",
+        "regionAvailability"
+      ],
+      "members":{
+        "modelId":{
+          "shape":"BedrockModelId",
+          "documentation":"<p>The model Id of the foundation model.</p>"
+        },
+        "agreementAvailability":{
+          "shape":"AgreementAvailability",
+          "documentation":"<p>Agreement availability. </p>"
+        },
+        "authorizationStatus":{
+          "shape":"AuthorizationStatus",
+          "documentation":"<p>Authorization status.</p>"
+        },
+        "entitlementAvailability":{
+          "shape":"EntitlementAvailability",
+          "documentation":"<p>Entitlement availability. </p>"
+        },
+        "regionAvailability":{
+          "shape":"RegionAvailability",
+          "documentation":"<p>Region availability. </p>"
+        }
+      }
+    },
+    "GetFoundationModelRequest":{
+      "type":"structure",
+      "required":["modelIdentifier"],
+      "members":{
+        "modelIdentifier":{
+          "shape":"ModelIdentifier",
+          "documentation":"<p>The model identifier. </p>",
+          "location":"uri",
+          "locationName":"model

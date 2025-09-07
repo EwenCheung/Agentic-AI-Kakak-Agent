@@ -30,8 +30,14 @@ class Settings(BaseSettings):
     # Embeddings / Vector DB (for knowledge base study)
     EMBED_MODEL_ID: str | None = None
     TOKENIZER_MODEL_ID: str | None = None
-    CHROMA_DOC_DB_PATH: str | None = "./src/database/vector_db/"
+    CHROMA_DOC_DB_PATH: str | None = "./src/database/knowledge_base/"
 
+    # Mem0 Configuration
+    MEM0_LLM_PROVIDER: str | None = "aws_bedrock"
+    MEM0_DATA_PATH: str | None = "./src/database/mem0_data"
+    MEM0_EMBEDDER_PROVIDER: str | None = "aws_bedrock"
+    MEM0_VECTOR_STORE_PROVIDER: str | None = "chroma" 
+    
     @cached_property
     def SESSION(self):
         """Lazily create and cache a single boto3 Session instance.
@@ -133,6 +139,47 @@ class Settings(BaseSettings):
     @property
     def TONE_AND_MANNER_EFFECTIVE(self) -> str:
         return self.get_tone_and_manner()
+    
+    @property
+    def mem0_data_path(self) -> str:
+        """Return absolute path for Mem0 data storage"""
+        import os
+        
+        # Convert relative path to absolute
+        mem0_path = self.MEM0_DATA_PATH or "./src/database/mem0_data"
+        if not os.path.isabs(mem0_path):
+            # Get absolute path relative to backend directory
+            backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            mem0_path = os.path.abspath(os.path.join(backend_dir, mem0_path))
+        
+        # Ensure directory exists
+        os.makedirs(mem0_path, exist_ok=True)
+        return mem0_path
+
+    def get_mem0_config(self) -> dict:
+        """Return complete Mem0 configuration for local/OSS usage"""
+        return {
+            "llm": {
+                "provider": self.MEM0_LLM_PROVIDER or "aws_bedrock",
+                "config": {
+                    "model": self.BEDROCK_MODEL_ID,
+                }
+            },
+            "embedder": {
+                "provider": self.MEM0_EMBEDDER_PROVIDER or "aws_bedrock",
+                "config": {
+                    "model": self.EMBED_MODEL_ID or "amazon.titan-embed-text-v2:0",
+                }
+            },
+            "vector_store": {
+                "provider": self.MEM0_VECTOR_STORE_PROVIDER or "chroma",
+                "config": {
+                    "collection_name": "mem0",
+                    "path": self.mem0_data_path,
+                }
+            },
+            "version": "v1.1"
+        }
 
     model_config = SettingsConfigDict(
         env_file=".env",
