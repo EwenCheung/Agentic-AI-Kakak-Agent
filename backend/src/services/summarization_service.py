@@ -3,6 +3,8 @@ from ..database.models import Customer, get_db
 from ..config.settings import settings
 from strands.models import BedrockModel
 
+
+
 class SummarizationService:
     def __init__(self):
         self.model = BedrockModel(

@@ -6,19 +6,20 @@ Handles incoming messages from various channels and manages agent interactions
 import asyncio
 import logging
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, Callable, List
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from ..config.settings import settings
 from ..agent.orchestrator_agent.orchestrator_agent import orchestrator_assistant
 from ..agent.chat_agent.chat_agent import chat_assistant
 from ..agent.daily_digest_agent.daily_digest_agent import daily_digest_assistant
 from ..agent.scheduler_agent.scheduler_agent import scheduler_assistant
 from ..agent.ticketing_agent.ticketing_agent import ticketing_assistant
-from ..services.calendar_client import get_calendar_status
+from ..services.calendar_client import get_calendar_status, get_calendar_client
 from ..database.models import get_db, Ticket, Customer
 
 
@@ -32,11 +33,10 @@ class ChatAgentRequest(BaseModel):
     iterative: Optional[bool] = Field(False, description="If true, run iterative plan->execute cycles.")
     cycles: Optional[int] = Field(3, description="Max cycles when iterative=true.")
 
-class ChatAgentByPhoneRequest(BaseModel):
-    message: str = Field(..., description="Orchestrator instruction (will resolve phone->chat_id).")
+class OrchestratorRequest(BaseModel):
+    message: str = Field(..., description="Orchestrator instruction.")
     host_company: str = Field(..., description="The name of the host company")
-    tone_and_manner: str = Field(..., description="The tone and manner for responses")
-    phone_number: str = Field(..., description="Customer's phone number with country code (e.g., '+6585505541')")
+    tone_and_manner: Optional[str] = Field(None, description="The tone and manner for responses (optional; will fallback to stored config)")
     company_config: Optional[Dict] = Field(None, description="Company configuration settings")
 
 class AgentQueryRequest(BaseModel):
@@ -78,13 +78,10 @@ async def handle_daily_digest(request: AgentQueryRequest):
     return {"response": response}
 
 @router.post("/orchestrator_agent")
-async def handle_orchestrator_agent(request: ChatAgentByPhoneRequest):
-    response = orchestrator_assistant(
-        query=request.message,
-        company_name=request.host_company,
-        tone_and_manner=request.tone_and_manner,
-        phone_number=request.phone_number
-    )
+async def handle_orchestrator_agent(request: OrchestratorRequest):
+    tone = request.tone_and_manner or settings.get_tone_and_manner()
+    enriched_query = f"Company: {request.host_company}\nTone: {tone}\nInstruction: {request.message}"
+    response = orchestrator_assistant(query=enriched_query)
     return {"response": response}
 
 class SchedulerAgentRequest(BaseModel):
@@ -173,10 +170,258 @@ async def get_daily_digest(db: Session = Depends(get_db)):
     """
     Retrieves a daily digest summary
     """
-    digest = orchestrator_assistant(
-        query="Provide a summary of today's events, open tickets, and important information using daily_digest agent and your knowledge.."
+    digest_raw = await daily_digest_assistant(
+        query="Provide a summary of today's events, open tickets, and important information using tools and your knowledge in a buisness view."
     )
-    return {"summarise_digest": digest}
+    
+    # Extract the concise summary from the orchestrator's verbose output
+    # Look for "Daily Digest Agent Response: " and take the text after it.
+    # If not found, return the raw digest.
+    summary_prefix = "Daily Digest Agent Response: "
+    if summary_prefix in digest_raw:
+        digest_summary = digest_raw.split(summary_prefix, 1)[1].strip()
+    else:
+        digest_summary = digest_raw.strip() # Fallback to raw if prefix not found
+
+    return {"summarise_digest": digest_summary}
+
+@router.get("/upcoming_events")
+async def get_upcoming_events():
+    """
+    Retrieves upcoming calendar events from the calendar service for the next 7 days.
+    """
+    try:
+        calendar_client = get_calendar_client()
+        today = datetime.now()
+        one_week_from_now = today + timedelta(days=7)
+        
+        # Format dates as 'YYYY-MM-DD' strings for the list_events method
+        start_date_str = today.strftime("%Y-%m-%d")
+        end_date_str = one_week_from_now.strftime("%Y-%m-%d")
+
+        events_str = calendar_client.list_events(start_date_str, end_date_str)
+        
+        # The list_events method returns a string representation of the events.
+        # We need to parse it back into a Python object if it's a valid JSON string.
+        # If it's "No upcoming events found." or an error message, return it as is.
+        if events_str.startswith("[") and events_str.endswith("]"):
+            try:
+                events = json.loads(events_str)
+                return {"events": events}
+            except json.JSONDecodeError:
+                return {"message": "Failed to parse events from calendar service.", "raw_response": events_str}
+        else:
+            return {"message": events_str} # This will handle "No upcoming events found." or error messages
+    except Exception as e:
+        logger.error(f"Error retrieving upcoming events: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving upcoming events: {e}")
+
+
+# Removed os, load_dotenv, set_key imports
+from fastapi import UploadFile, File # Keep UploadFile, File
+from sqlalchemy.orm import Session # Keep Session
+from fastapi import Depends # Keep Depends
+
+# ... (existing imports)
+
+from ..database.models import get_db, Ticket, Customer, IncomingMessage, get_config_db, EnvConfig, KnowledgeBase # Added KnowledgeBase
+"""Knowledge base vectorisation import.
+The original code expected functions `process_documents` and `vectorise_knowledge_base_from_db`.
+The implementation file now provides `vectorise_knowledge_base_from_db` only.
+Import it and alias to the old expected name to avoid refactoring other call sites.
+"""
+from ..database.data_processing.pdf_vdb import vectorise_knowledge_base_from_db 
+import hashlib
+
+from pydantic import BaseModel
+
+class ChannelConfigRequest(BaseModel):
+    telegram_bot_id: str
+    client_secret_json_content: str
+
+class AgentConfigRequest(BaseModel):
+    tone_and_manner: Optional[str] = None
+
+@router.post("/configure_channel")
+async def configure_channel(
+    request: ChannelConfigRequest,
+    db_config: Session = Depends(get_config_db)
+):
+    """Configure channel integration (requires BOTH bot id and client secret JSON)."""
+    # Validate JSON correctness early
+    try:
+        json.loads(request.client_secret_json_content)
+    except Exception:
+        raise HTTPException(status_code=400, detail="client_secret_json_content must be valid JSON text")
+
+    try:
+        env_config = db_config.query(EnvConfig).first()
+        if not env_config:
+            env_config = EnvConfig()
+            db_config.add(env_config)
+
+        env_config.telegram_bot_token = request.telegram_bot_id
+        env_config.client_secret_json = request.client_secret_json_content
+
+        db_config.commit()
+        db_config.refresh(env_config)
+        # Sync in-memory settings for any legacy direct reads (preferred: use getter)
+        try:
+            settings.TELEGRAM_BOT_TOKEN = env_config.telegram_bot_token
+        except Exception:
+            pass
+        return {"message": "Channel configuration saved."}
+    except Exception as e:
+        logger.error(f"Error configuring channel: {e}")
+        raise HTTPException(status_code=500, detail=f"Error configuring channel: {e}")
+
+@router.post("/configure_agent")
+async def configure_agent(
+    request: AgentConfigRequest,
+    db_config: Session = Depends(get_config_db)
+):
+    """Configure agent behavior (tone & manner). Tone is optional; if omitted existing is retained."""
+    try:
+        env_config = db_config.query(EnvConfig).first()
+        if not env_config:
+            env_config = EnvConfig()
+            db_config.add(env_config)
+        before = env_config.tone_and_manner
+        if request.tone_and_manner is not None and request.tone_and_manner.strip() != "":
+            env_config.tone_and_manner = request.tone_and_manner.strip()
+        logger.info(f"configure_agent tone change: before='{before}' after='{env_config.tone_and_manner}'")
+
+        db_config.commit()
+        db_config.refresh(env_config)
+        # Synchronize in-memory settings field so any code still (incorrectly) reading
+        # settings.TONE_AND_MANNER gets the latest value. Preferred access remains
+        # settings.get_tone_and_manner().
+        try:
+            settings.TONE_AND_MANNER = env_config.tone_and_manner
+        except Exception:
+            pass
+        return {"message": "Agent configuration updated.", "tone_and_manner": env_config.tone_and_manner}
+    except Exception as e:
+        logger.error(f"Error configuring agent: {e}")
+        raise HTTPException(status_code=500, detail=f"Error configuring agent: {e}")
+
+
+@router.get("/config/current")
+async def get_current_config(db_config: Session = Depends(get_config_db)):
+    env_config = db_config.query(EnvConfig).first()
+    return {
+        "telegram_bot_token": env_config.telegram_bot_token if env_config else None,
+        "has_client_secret": bool(env_config and env_config.client_secret_json),
+        "tone_and_manner": env_config.tone_and_manner if env_config and env_config.tone_and_manner else settings.get_tone_and_manner(),
+    }
+
+@router.get("/config/diagnostics")
+async def config_diagnostics(db_config: Session = Depends(get_config_db)):
+    env_config = db_config.query(EnvConfig).first()
+    db_tone = env_config.tone_and_manner if env_config else None
+    effective = settings.get_tone_and_manner()
+    return {
+        "db_tone": db_tone,
+        "effective_tone": effective,
+        "matches": db_tone == effective,
+    }
+
+
+@router.get("/knowledge_base/documents")
+async def list_knowledge_base_documents(db_config: Session = Depends(get_config_db)):
+    docs = db_config.query(KnowledgeBase).order_by(KnowledgeBase.id.desc()).all()
+    return [
+        {
+            "id": d.id,
+            "file_name": d.file_name,
+            "description": d.description,
+            "content_type": d.content_type,
+            "size_bytes": d.size_bytes,
+            "created_at": d.created_at.isoformat() if getattr(d, 'created_at', None) else None,
+            "study_status": getattr(d, 'study_status', None),
+        }
+        for d in docs
+    ]
+
+@router.post("/knowledge_base/upload")
+async def upload_knowledge_base_documents(
+    files: List[UploadFile] = File(..., description="One or more documents"),
+    descriptions: Optional[List[str]] = None,
+    db_config: Session = Depends(get_config_db)
+):
+    """Upload multiple knowledge base documents. descriptions list (if provided) aligns by index.
+
+    Adds SHA256 hash to support duplicate detection. If an identical file (same hash) with the
+    same name already exists, it will still store again (versioning) unless we choose to skip.
+    Currently policy: skip exact duplicates (same hash & name).
+    """
+    results = []
+    try:
+        for idx, up in enumerate(files):
+            data = await up.read()
+            file_hash = hashlib.sha256(data).hexdigest()
+            desc = None
+            if descriptions and idx < len(descriptions):
+                desc = descriptions[idx]
+
+            # Check for existing duplicate
+            existing = db_config.query(KnowledgeBase).filter(
+                KnowledgeBase.file_name == up.filename,
+                KnowledgeBase.file_hash == file_hash,
+            ).first()
+            if existing:
+                results.append({
+                    "id": existing.id,
+                    "file_name": existing.file_name,
+                    "duplicate": True,
+                })
+                continue
+
+            kb = KnowledgeBase(
+                file_name=up.filename,
+                description=desc,
+                content_type=up.content_type,
+                size_bytes=len(data),
+                file_content=data,
+                file_hash=file_hash,
+                study_status='not_studied'
+            )
+            db_config.add(kb)
+            db_config.flush()  # get id without full commit yet
+            results.append({"id": kb.id, "file_name": kb.file_name, "duplicate": False, "study_status": kb.study_status})
+        db_config.commit()
+        return {"message": "Documents processed", "documents": results}
+    except Exception as e:
+        logger.error(f"Error uploading documents: {e}")
+        db_config.rollback()
+        raise HTTPException(status_code=500, detail=f"Error uploading documents: {e}")
+
+@router.delete("/knowledge_base/documents/{doc_id}")
+async def delete_knowledge_base_document(doc_id: int, db_config: Session = Depends(get_config_db)):
+    doc = db_config.query(KnowledgeBase).filter(KnowledgeBase.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    try:
+        db_config.delete(doc)
+        db_config.commit()
+        return {"message": "Document deleted"}
+    except Exception as e:
+        db_config.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete: {e}")
+
+from fastapi.responses import StreamingResponse
+import io
+
+@router.get("/knowledge_base/documents/{doc_id}/download")
+async def download_knowledge_base_document(doc_id: int, db_config: Session = Depends(get_config_db)):
+    doc = db_config.query(KnowledgeBase).filter(KnowledgeBase.id == doc_id).first()
+    if not doc or not doc.file_content:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return StreamingResponse(
+        io.BytesIO(doc.file_content),
+        media_type=doc.content_type or 'application/octet-stream',
+        headers={"Content-Disposition": f"attachment; filename=\"{doc.file_name}\""}
+    )
 
 
 @router.get("/healthz")
@@ -188,3 +433,31 @@ async def healthz():
 async def readyz():
     calendar = get_calendar_status()
     return {"status": "ok" if calendar.get("configured") else "degraded", "calendar": calendar}
+
+# ---------------- Knowledge Base Vectorization -----------------
+_vector_state = {"status": "idle", "processed": [], "error": None}
+
+@router.post("/knowledge_base/vectorise")
+async def start_vectorise(background_tasks: BackgroundTasks, recreate: bool = True):
+    """Trigger vectorisation of ALL knowledge base documents stored in DB.
+
+    Query param recreate controls whether the existing vector store is fully rebuilt (default True)
+    or appended to (recreate=False may duplicate chunks for already processed files).
+    """
+    if _vector_state["status"] == "running":
+        return {"status": "running", "message": "Vectorisation already in progress"}
+    _vector_state.update({"status": "running", "processed": [], "error": None, "recreate": recreate})
+
+    def _run():
+        try:
+            processed = vectorise_knowledge_base_from_db(recreate=recreate)
+            _vector_state.update({"status": "completed", "processed": processed})
+        except Exception as e:
+            _vector_state.update({"status": "error", "error": str(e)})
+
+    background_tasks.add_task(_run)
+    return {"status": "running"}
+
+@router.get("/knowledge_base/vectorise/status")
+async def vectorise_status():
+    return _vector_state

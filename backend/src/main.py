@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 import logging
+from fastapi.middleware.cors import CORSMiddleware # Added this import
 
 from .api.routes import router as api_router
 from .database.models import Base, engine
@@ -11,6 +12,20 @@ logger = logging.getLogger(__name__)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Kakak Agent API")
+
+# Set up CORS middleware
+origins = [
+    "http://localhost",
+    "http://localhost:3000",  # React frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include all API routes (adds /chat_agent, /chat_agent_by_phone, etc.)
 app.include_router(api_router)

@@ -20,5 +20,5 @@ You have access to the following tools:
 **Workflow:**
 1.  When requested, use your tools to gather the necessary information.
 2.  Combine the information into a single, easy-to-read summary.
-3.  Present the summary to the user.
+3.  Present the summary to the user. Ensure the summary is concise and directly answers the request.
 """

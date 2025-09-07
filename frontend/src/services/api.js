@@ -12,3 +12,11 @@ export const sendMessage = async (message) => {
     });
     return response.json();
 };
+
+export const get = async (endpoint) => {
+    const response = await fetch(`${API_URL}${endpoint}`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+};

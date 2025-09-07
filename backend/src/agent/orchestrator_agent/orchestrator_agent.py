@@ -6,10 +6,9 @@ from strands_tools import current_time
 from ...config.settings import settings
 from ..orchestrator_agent.orchestrator_system_prompt import ORCHESTRATOR_SYSTEM_PROMPT
 from ..chat_agent.chat_agent import chat_assistant
-from ..daily_digest_agent.daily_digest_agent import daily_digest_assistant
 from ..scheduler_agent.scheduler_agent import scheduler_assistant
 from ..ticketing_agent.ticketing_agent import ticketing_assistant
-
+from .tools.knowledge_base_tools import knowledge_base_search
 
 @tool
 async def orchestrator_assistant(query: str) -> str:
@@ -22,7 +21,7 @@ async def orchestrator_assistant(query: str) -> str:
     Returns:
         str: The agent's response.
     """
-
+    
     model = BedrockModel(
         model_id=settings.BEDROCK_MODEL_ID,
         boto_session=settings.SESSION,
@@ -32,8 +31,8 @@ async def orchestrator_assistant(query: str) -> str:
         system_prompt=ORCHESTRATOR_SYSTEM_PROMPT,
         tools = [
             current_time, 
+            knowledge_base_search,
             chat_assistant, 
-            daily_digest_assistant, 
             scheduler_assistant, 
             ticketing_assistant
             ]
@@ -43,6 +42,6 @@ async def orchestrator_assistant(query: str) -> str:
     result = await orchestrator_agent.invoke_async(query)
 
     # The result is an AgentResult object, extract the final response text.
-    response = str(result)
+    response = str(result) # Reverted to str(result)
     return response
 
