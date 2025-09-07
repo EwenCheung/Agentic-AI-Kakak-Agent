@@ -1,0 +1,169 @@
+/* Additional responsive utilities for better mobile experience */
+
+/* Hide scrollbars on mobile for cleaner look */
+@media (max-width: 768px) {
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mobile-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .mobile-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Touch-friendly button sizing */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Safe area handling for mobile devices */
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Responsive font scaling */
+@media (max-width: 320px) {
+  .text-responsive-xs { font-size: 0.7rem; }
+  .text-responsive-sm { font-size: 0.8rem; }
+  .text-responsive-base { font-size: 0.85rem; }
+  .text-responsive-lg { font-size: 0.9rem; }
+  .text-responsive-xl { font-size: 1rem; }
+}
+
+@media (min-width: 1200px) {
+  .text-responsive-xs { font-size: 0.875rem; }
+  .text-responsive-sm { font-size: 1rem; }
+  .text-responsive-base { font-size: 1.125rem; }
+  .text-responsive-lg { font-size: 1.25rem; }
+  .text-responsive-xl { font-size: 1.5rem; }
+}
+
+/* Mobile navigation enhancements */
+@media (max-width: 768px) {
+  .mobile-nav-overlay {
+    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Responsive table improvements */
+@media (max-width: 640px) {
+  .mobile-table-stack {
+    display: block;
+  }
+  
+  .mobile-table-stack thead {
+    display: none;
+  }
+  
+  .mobile-table-stack tbody,
+  .mobile-table-stack tr,
+  .mobile-table-stack td {
+    display: block;
+  }
+  
+  .mobile-table-stack tr {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    background-color: white;
+  }
+  
+  .mobile-table-stack td {
+    border: none;
+    padding: 0.25rem 0;
+    position: relative;
+    padding-left: 50%;
+  }
+  
+  .mobile-table-stack td:before {
+    content: attr(data-label) ": ";
+    position: absolute;
+    left: 0;
+    width: 45%;
+    padding-right: 0.5rem;
+    white-space: nowrap;
+    font-weight: 600;
+    color: #374151;
+  }
+}
+
+/* Container responsive improvements */
+.responsive-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-container {
+    max-width: 768px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-container {
+    max-width: 1024px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .responsive-container {
+    max-width: 1280px;
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+/* Spacing responsive utilities */
+.spacing-responsive {
+  padding: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .spacing-responsive {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .spacing-responsive {
+    padding: 1.5rem;
+  }
+}
+
+/* Form input responsive sizing */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}

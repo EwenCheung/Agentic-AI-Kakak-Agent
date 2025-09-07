@@ -77,128 +77,148 @@ const DashboardPage = () => {
 
   return (
     <div>
-      <div className="rounded-lg py-4">
-        <div className="flex items-center mb-2">
-          <h1 className="text-xl mr-2">Dashboard</h1>
-          <img src={DashBoardIcon} className="w-5 h-5" alt="Dashboard Icon" />
+      <div className="rounded-lg spacing-responsive">
+        <div className="flex items-center mb-4">
+          <h1 className="text-responsive-xl mr-2">Dashboard</h1>
+          <img src={DashBoardIcon} className="w-5 h-5 md:w-6 md:h-6" alt="Dashboard Icon" />
         </div>
 
-        <div className="border border-black px-4 py-2 rounded-lg">
-          <p className="text-lg">Daily Digest</p>
-          <hr className="border-t border-gray-500 mt-2"></hr>
-          <div className="grid grid-cols-1 grid-rows-auto gap-4">
+        <div className="border border-black px-2 py-4 md:px-4 md:py-6 rounded-lg">
+          <p className="text-responsive-lg">Daily Digest</p>
+          <hr className="border-t border-gray-500 mt-2 mb-4"></hr>
+          <div className="space-y-6 md:space-y-8">
             <div>
-              <div className="my-2 text-lg">Upcoming Events</div>
+              <div className="mb-4 text-responsive-base font-semibold">Upcoming Events</div>
               {loadingEvents && <Spinner />}
-              {errorEvents && <p className="text-red-500">{errorEvents}</p>}
+              {errorEvents && <p className="text-red-500 text-responsive-sm">{errorEvents}</p>}
               {!loadingEvents && !errorEvents && upcomingEvents.length === 0 && (
-                <p>No upcoming events found.</p>
+                <p className="text-responsive-sm">No upcoming events found.</p>
               )}
               {!loadingEvents && !errorEvents && upcomingEvents.length > 0 && (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      >
-                        Event
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      >
-                        Start
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      >
-                        End
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {upcomingEvents.map((event) => (
-                      <tr key={event.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {event.summary}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(
-                            event.start.dateTime || event.start.date
-                          ).toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(
-                            event.end.dateTime || event.end.date
-                          ).toLocaleString()}
-                        </td>
+                <div className="table-responsive">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-2 md:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                        >
+                          Event
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-2 md:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                        >
+                          Start
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-2 md:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden sm:table-cell"
+                        >
+                          End
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {upcomingEvents.map((event) => (
+                        <tr key={event.id}>
+                          <td className="px-2 md:px-6 py-4 text-responsive-xs font-medium text-gray-900">
+                            <div className="break-words">{event.summary}</div>
+                          </td>
+                          <td className="px-2 md:px-6 py-4 text-responsive-xs text-gray-500">
+                            <div className="break-words">
+                              {new Date(
+                                event.start.dateTime || event.start.date
+                              ).toLocaleString()}
+                            </div>
+                          </td>
+                          <td className="px-2 md:px-6 py-4 text-responsive-xs text-gray-500 hidden sm:table-cell">
+                            <div className="break-words">
+                              {new Date(
+                                event.end.dateTime || event.end.date
+                              ).toLocaleString()}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
+            
             <div>
-              <div className="mt-4 text-lg">Tickets</div>
-              {loadingTickets && <p>Loading tickets...</p>}
-              {errorTickets && <p className="text-red-500">{errorTickets}</p>}
+              <div className="mb-4 text-responsive-base font-semibold">Tickets</div>
+              {loadingTickets && <p className="text-responsive-sm">Loading tickets...</p>}
+              {errorTickets && <p className="text-red-500 text-responsive-sm">{errorTickets}</p>}
               {!loadingTickets && !errorTickets && openTickets.length === 0 && (
-                <p>No open tickets found.</p>
+                <p className="text-responsive-sm">No open tickets found.</p>
               )}
               {!loadingTickets && !errorTickets && openTickets.length > 0 && (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Issue
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Priority
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {openTickets.map((ticket) => (
-                      <tr key={ticket.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {ticket.issue}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {ticket.priority}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {ticket.status}
-                        </td>
+                <div className="table-responsive">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Issue
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Priority
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell"
+                        >
+                          Status
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {openTickets.map((ticket) => (
+                        <tr key={ticket.id}>
+                          <td className="px-2 md:px-6 py-4 text-responsive-xs font-medium text-gray-900">
+                            <div className="break-words">{ticket.issue}</div>
+                          </td>
+                          <td className="px-2 md:px-6 py-4 text-responsive-xs text-gray-500">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              ticket.priority === 'High' ? 'bg-red-100 text-red-800' :
+                              ticket.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {ticket.priority}
+                            </span>
+                          </td>
+                          <td className="px-2 md:px-6 py-4 text-responsive-xs text-gray-500 hidden sm:table-cell">
+                            <div className="break-words">{ticket.status}</div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
 
             <div>
-              <div className="mt-4 text-lg">Insights</div>
-              {loadingDigest && <p>Loading insights...</p>}
-              {errorDigest && <p className="text-red-500">{errorDigest}</p>}
+              <div className="mb-4 text-responsive-base font-semibold">Insights</div>
+              {loadingDigest && <p className="text-responsive-sm">Loading insights...</p>}
+              {errorDigest && <p className="text-red-500 text-responsive-sm">{errorDigest}</p>}
               {!loadingDigest && !errorDigest && !dailyDigest && (
-                <p>No insights available.</p>
+                <p className="text-responsive-sm">No insights available.</p>
               )}
               {!loadingDigest && !errorDigest && dailyDigest && (
-                <div style={{ whiteSpace: 'pre-wrap' }}>{dailyDigest}</div>
+                <div 
+                  className="text-responsive-sm bg-gray-50 p-3 md:p-4 rounded-md border border-gray-200"
+                  style={{ whiteSpace: 'pre-wrap' }}
+                >
+                  {dailyDigest}
+                </div>
               )}
             </div>
           </div>

@@ -10,7 +10,7 @@ import "./App.css";
 function App() {
   return (
     <Router>
-      <div className="mx-auto max-w-7xl my-8 mx-4">
+      <div className="responsive-container my-4 sm:my-6 md:my-8">
         <Header />
         <Routes>
           <Route path="/" element={<DashboardPage />} />
