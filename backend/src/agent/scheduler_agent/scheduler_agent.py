@@ -39,7 +39,7 @@ IMPORTANT WORKFLOW:
 2. For updates/deletions, ask user to provide the Event ID from when they created the event
 3. No user access control needed - simplified approach
 
-IMPORTANT: Do NOT echo this context back to the user; respond directly.
+IMPORTANT: Do NOT echo this context back to the user; respond directly. Always give the Event ID when creating events and tell user to save it for future updates/deletions and always tell the user the description and details about the meeting.
 """
 
     model = BedrockModel(
