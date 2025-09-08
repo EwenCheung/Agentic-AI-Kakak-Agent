@@ -12,6 +12,9 @@ const ChannelLinking = () => {
   const [message, setMessage] = useState("");
   const [agentMessage, setAgentMessage] = useState("");
   const [currentTone, setCurrentTone] = useState("");
+  const [googleCalendarStatus, setGoogleCalendarStatus] = useState({ configured: false, ready: false, token_exists: false });
+  const [authorizationCode, setAuthorizationCode] = useState("");
+  const [showAuthCodeInput, setShowAuthCodeInput] = useState(false);
   
   // Toast notification state and hook
   const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
@@ -26,8 +29,32 @@ const ChannelLinking = () => {
           setCurrentTone(data.tone_and_manner || "");
         }
       } catch (e) { /* ignore */ }
+      
+      // Check Google Calendar status
+      try {
+        const resp = await fetch('http://localhost:8000/google/calendar/status');
+        if (resp.ok) {
+          const data = await resp.json();
+          setGoogleCalendarStatus(data);
+        }
+      } catch (e) { /* ignore */ }
     })();
-  }, []);
+
+    // Listen for OAuth completion messages from popup window
+    const handleMessage = (event) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data.type === 'GOOGLE_OAUTH_SUCCESS') {
+        showSuccess('Authorization Complete', 'Google Calendar has been successfully authorized!');
+        checkGoogleCalendarStatus();
+      } else if (event.data.type === 'GOOGLE_OAUTH_ERROR') {
+        showError('Authorization Failed', event.data.message || 'Google Calendar authorization failed.');
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [showSuccess, showError]); // Added missing dependencies
   // Restart backend feature removed (hot-reload no longer required after config save)
 
   const handleChannelSubmit = async (e) => {
@@ -74,8 +101,30 @@ const ChannelLinking = () => {
         setTelegramBotId("");
         setClientSecretJsonContent("");
         showSuccess('Configuration Saved', 'Channel configuration has been successfully saved.');
+        
+        // Automatically trigger Google OAuth if auth URL is provided
+        if (data.google_auth_url) {
+          setTimeout(() => {
+            window.open(data.google_auth_url, '_blank', 'width=500,height=600');
+            showSuccess('Authorization Started', 'Please complete Google Calendar authorization in the new window and copy the authorization code when shown.');
+            setShowAuthCodeInput(true);
+          }, 1000); // Small delay to show the success message first
+        }
+        
+        // After successful channel config, check Google Calendar status
+        checkGoogleCalendarStatus();
       } else {
-        const errorMsg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail) || "Failed to save configuration.";
+        let errorMsg = "Failed to save configuration.";
+        if (data.detail) {
+          if (typeof data.detail === 'string') {
+            errorMsg = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            // Handle Pydantic validation errors
+            errorMsg = data.detail.map(err => err.msg || 'Validation error').join(', ');
+          } else {
+            errorMsg = JSON.stringify(data.detail);
+          }
+        }
         setMessage(errorMsg);
         showError('Configuration Failed', errorMsg);
       }
@@ -84,6 +133,65 @@ const ChannelLinking = () => {
       const errorMsg = "An error occurred during configuration.";
       setMessage(errorMsg);
       showError('Configuration Error', errorMsg);
+    }
+  };
+
+  const checkGoogleCalendarStatus = async () => {
+    try {
+      const resp = await fetch('http://localhost:8000/google/calendar/status');
+      if (resp.ok) {
+        const data = await resp.json();
+        setGoogleCalendarStatus(data);
+      }
+    } catch (e) { /* ignore */ }
+  };
+
+  const handleGoogleAuthorization = async () => {
+    try {
+      const resp = await fetch('http://localhost:8000/google/oauth/start');
+      if (resp.ok) {
+        const data = await resp.json();
+        // Open authorization URL in new window
+        window.open(data.auth_url, '_blank', 'width=500,height=600');
+        showSuccess('Authorization Started', 'Please complete authorization in the new window and copy the authorization code.');
+        setShowAuthCodeInput(true);
+      } else {
+        showError('Authorization Failed', 'Failed to start Google authorization.');
+      }
+    } catch (error) {
+      showError('Authorization Error', 'Error starting Google authorization.');
+    }
+  };
+
+  const handleAuthCodeSubmit = async () => {
+    if (!authorizationCode.trim()) {
+      showError('Missing Code', 'Please enter the authorization code.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/google/oauth/callback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          authorization_code: authorizationCode.trim()
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showSuccess('Authorization Complete', 'Google Calendar has been successfully authorized!');
+        setAuthorizationCode("");
+        setShowAuthCodeInput(false);
+        checkGoogleCalendarStatus();
+      } else {
+        showError('Authorization Failed', data.detail || 'Failed to complete authorization.');
+      }
+    } catch (error) {
+      showError('Authorization Error', 'Error completing authorization.');
     }
   };
 
@@ -107,7 +215,17 @@ const ChannelLinking = () => {
         }
         showSuccess('Agent Updated', 'Agent tone and manner configuration has been successfully updated.');
       } else {
-        const errorMsg = data.detail || 'Failed to update agent configuration.';
+        let errorMsg = 'Failed to update agent configuration.';
+        if (data.detail) {
+          if (typeof data.detail === 'string') {
+            errorMsg = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            // Handle Pydantic validation errors
+            errorMsg = data.detail.map(err => err.msg || 'Validation error').join(', ');
+          } else {
+            errorMsg = JSON.stringify(data.detail);
+          }
+        }
         setAgentMessage(errorMsg);
         showError('Update Failed', errorMsg);
       }
@@ -166,6 +284,51 @@ const ChannelLinking = () => {
                   onChange={(e) => setClientSecretJsonContent(e.target.value)}
                   placeholder="Paste your client_secret.json content here..."
                 />
+                
+                {/* Google Calendar Status */}
+                <div className="mt-2 text-responsive-xs">
+                  <div className={`flex items-center space-x-2 ${googleCalendarStatus.ready ? 'text-green-600' : 'text-orange-600'}`}>
+                    <span className={`w-2 h-2 rounded-full ${googleCalendarStatus.ready ? 'bg-green-500' : 'bg-orange-500'}`}></span>
+                    <span>
+                      {googleCalendarStatus.ready 
+                        ? "✅ Google Calendar Ready" 
+                        : googleCalendarStatus.configured 
+                          ? "⚠️ Needs Authorization" 
+                          : "❌ Client Secret Required"
+                      }
+                    </span>
+                  </div>
+                  {googleCalendarStatus.configured && !googleCalendarStatus.ready && (
+                    <div className="mt-2 space-y-2">
+                      <button
+                        type="button"
+                        onClick={handleGoogleAuthorization}
+                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                      >
+                        Authorize Google Calendar
+                      </button>
+                      
+                      {showAuthCodeInput && (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            placeholder="Paste authorization code here..."
+                            value={authorizationCode}
+                            onChange={(e) => setAuthorizationCode(e.target.value)}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAuthCodeSubmit}
+                            className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                          >
+                            Submit Code
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               
               <button

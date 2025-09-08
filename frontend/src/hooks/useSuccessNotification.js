@@ -1,58 +1,47 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 
-const useSuccessNotification = () => {
-  const [notification, setNotification] = useState({
-    show: false,
-    message: '',
-    type: 'success'
-  });
-
-  const showSuccess = useCallback((message) => {
-    setNotification({
+const useSuccessNotification = (setToast) => {
+  const showSuccess = useCallback((title, message) => {
+    setToast({
       show: true,
-      message,
-      type: 'success'
+      type: 'success',
+      title,
+      message
     });
-  }, []);
+  }, [setToast]);
 
-  const showError = useCallback((message) => {
-    setNotification({
+  const showError = useCallback((title, message) => {
+    setToast({
       show: true,
-      message,
-      type: 'error'
+      type: 'error',
+      title,
+      message
     });
-  }, []);
+  }, [setToast]);
 
-  const showWarning = useCallback((message) => {
-    setNotification({
+  const showWarning = useCallback((title, message) => {
+    setToast({
       show: true,
-      message,
-      type: 'warning'
+      type: 'warning',
+      title,
+      message
     });
-  }, []);
+  }, [setToast]);
 
-  const showInfo = useCallback((message) => {
-    setNotification({
+  const showInfo = useCallback((title, message) => {
+    setToast({
       show: true,
-      message,
-      type: 'info'
+      type: 'info',
+      title,
+      message
     });
-  }, []);
-
-  const hideNotification = useCallback(() => {
-    setNotification(prev => ({
-      ...prev,
-      show: false
-    }));
-  }, []);
+  }, [setToast]);
 
   return {
-    notification,
     showSuccess,
     showError,
     showWarning,
-    showInfo,
-    hideNotification
+    showInfo
   };
 };
 

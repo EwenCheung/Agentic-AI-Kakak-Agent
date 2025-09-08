@@ -52,32 +52,27 @@ class GoogleCalendarClient:
         """
         creds = None
         token_path = "token.json"
-        # creds_path = settings.GOOGLE_CALENDAR_CREDENTIALS_PATH # Removed
 
         if os.path.exists(token_path):
             creds = Credentials.from_authorized_user_file(token_path, SCOPES)
         
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except Exception as e:
+                    logger.error(f"Failed to refresh credentials: {e}")
+                    # Remove invalid token and raise exception for re-authorization
+                    if os.path.exists(token_path):
+                        os.remove(token_path)
+                    raise Exception("Google Calendar authorization expired. Please re-authorize through the frontend.")
             else:
                 client_secret_content = settings.get_google_client_secret()
                 if not client_secret_content:
                     raise Exception("Google Calendar client secret not found in database. Please configure it.")
                 
-                # Write client secret to a temporary file
-                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
-                    temp_file.write(client_secret_content)
-                    temp_file_path = temp_file.name
-                
-                try:
-                    flow = InstalledAppFlow.from_client_secrets_file(temp_file_path, SCOPES)
-                    creds = flow.run_local_server(port=0)
-                finally:
-                    os.remove(temp_file_path) # Clean up temporary file
-            
-            with open(token_path, "w") as token:
-                token.write(creds.to_json())
+                # Instead of run_local_server, raise an exception for frontend handling
+                raise Exception("Google Calendar not authorized. Please complete authorization through the frontend.")
         
         return creds
 
