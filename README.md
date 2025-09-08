@@ -149,9 +149,9 @@ graph TB
     Orchestrator -->|delegates to| Scheduler
     Orchestrator -->|delegates to| Ticketing
     Orchestrator -->|delegates to| WebSearch
-    Orchestrator -->|delegates to| Digest
     Orchestrator -->|uses| KBSearch
     Orchestrator -->|responds via| MessageSend
+    Dashboard -->|delegates to| Digest
     
     %% === Frontend Admin Flow ===
     Dashboard -->|monitoring| API
