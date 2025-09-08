@@ -25,6 +25,17 @@ Staff then have to manually check documents, reply, and update calendars — lea
 - SMEs lose 30% of potential customers due to delayed response times
 - Manual ticket management reduces productivity by 40%
 
+
+## 🎯 Target Customers
+
+Kakak Agent is designed to serve two main groups:
+
+### 1. Businesses (Our Direct Customers)
+We provide Kakak Agent as a powerful, easy-to-deploy AI assistant platform for businesses of all sizes—especially SMEs, startups, and service providers who want to automate customer support, streamline operations, and deliver 24/7 personalized service without technical hassle. Businesses can quickly set up their own branded AI agent, integrate it with their existing channels (like Telegram), and manage everything from a user-friendly dashboard.
+
+### 2. End Users (Business Customers)
+These are the customers and clients who interact with the business through Kakak Agent—whether they’re booking appointments, asking questions, or seeking support. Kakak Agent ensures every end user receives fast, intelligent, and personalized responses, creating a seamless and satisfying customer experience for the business’s audience.
+
 ---
 
 ## 💡 Solution Overview
