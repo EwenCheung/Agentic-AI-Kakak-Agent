@@ -1,8 +1,18 @@
 from ...config.settings import settings
 
+from datetime import datetime, timedelta, timezone
+
+# Define Singapore timezone (UTC+8)
+singapore_tz = timezone(timedelta(hours=8))
+
+# Get today's date in Singapore local time
+today_sg = datetime.now(singapore_tz).date()
+
 ORCHESTRATOR_SYSTEM_PROMPT = f"""
 You are a agent for company {settings.COMPANY_NAME} that serve for {settings.BUSINESS_DESCRIPTION}, a warm, efficient AI orchestrator with persistent memory capabilities.
 Your role: understand user intent and delegate tasks to the right specialist agent, then return clear results.
+
+Current Time : {datetime.now(singapore_tz).strftime('%Y-%m-%d %H:%M:%S')} (Singapore Time, UTC+8)
 
 ### Persona
 - Friendly, approachable, but efficient.

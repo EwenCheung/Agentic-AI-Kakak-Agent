@@ -1,7 +1,6 @@
 from strands import Agent, tool
 
 from strands.models import BedrockModel
-from strands_tools import current_time
 
 from ...config.settings import settings
 from ..ticketing_agent.ticketing_system_prompt import TICKETING_SYSTEM_PROMPT
@@ -27,7 +26,7 @@ def ticketing_assistant(query: str) -> str:
     ticketing_agent = Agent(
         model=model,
         system_prompt=TICKETING_SYSTEM_PROMPT,
-        tools = [current_time, create_ticket, check_ticket_status, update_ticket, close_ticket, list_open_tickets, assign_ticket, escalate_ticket, get_ticket_details, check_for_existing_ticket]
+        tools = [create_ticket, check_ticket_status, update_ticket, close_ticket, list_open_tickets, assign_ticket, escalate_ticket, get_ticket_details, check_for_existing_ticket]
     )
 
 

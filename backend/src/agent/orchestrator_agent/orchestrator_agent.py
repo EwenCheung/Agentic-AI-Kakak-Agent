@@ -1,6 +1,5 @@
 from strands import Agent, tool
 from strands.models import BedrockModel
-from strands_tools import current_time, use_llm
 import logging
 import os
 
@@ -113,7 +112,6 @@ class MemoryAwareOrchestratorAgent:
             model=model,
             system_prompt=ORCHESTRATOR_SYSTEM_PROMPT,
             tools=[
-                current_time,
                 get_user_memories,
                 store_user_memory,
                 send_message,

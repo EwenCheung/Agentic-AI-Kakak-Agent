@@ -1,7 +1,6 @@
 from strands import Agent, tool
 
 from strands.models import BedrockModel
-from strands_tools import current_time
 
 from ...config.settings import settings
 from ..daily_digest_agent.daily_digest_system_prompt import DAILY_DIGEST_SYSTEM_PROMPT
@@ -26,7 +25,7 @@ async def daily_digest_assistant(query: str) -> str:
     daily_digest_agent = Agent(
         model=model,
         system_prompt=DAILY_DIGEST_SYSTEM_PROMPT,
-        tools=[current_time, get_open_tickets_summary, get_upcoming_events
+        tools=[get_open_tickets_summary, get_upcoming_events
 ],
     )
 

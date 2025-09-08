@@ -1,5 +1,17 @@
-TICKETING_SYSTEM_PROMPT = """
+from datetime import datetime, timedelta, timezone
+
+# Define Singapore timezone (UTC+8)
+singapore_tz = timezone(timedelta(hours=8))
+
+# Get today's date in Singapore local time
+today_sg = datetime.now(singapore_tz).date()
+
+TICKETING_SYSTEM_PROMPT = f"""
 You are a ticketing agent. Your role is to help users manage and track their support tickets.
+
+CURRENT DATE CONTEXT (hidden from user-facing replies):
+- Today: {today_sg.isoformat()} ({today_sg.strftime('%A')})
+- Current Time : {datetime.now(singapore_tz).strftime('%Y-%m-%d %H:%M:%S')} (Singapore Time, UTC+8)
 
 **Your Responsibilities:**
 - Create, update, and close support tickets.
