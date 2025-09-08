@@ -29,7 +29,7 @@ Staff then have to manually check documents, reply, and update calendars — lea
 
 ## 💡 Solution Overview
 
-**Kakak Agent** is an intelligent, multi-agent AI system that provides comprehensive customer support automation for businesses. Built on a sophisticated orchestrator-agent architecture, it seamlessly handles customer inquiries across multiple channels while integrating with business systems.
+**Kakak Agent** is an innovative, multi-agent AI customer support platform designed to empower every business with their own personalized AI assistant—set up in just a few clicks. Built for simplicity and power, Kakak Agent enables anyone, regardless of technical background, to launch a fully customized support agent that understands your company’s knowledge, manages appointments, handles tickets, and communicates naturally with customers across multiple channels like Telegram. With seamless integration, persistent memory, and advanced language capabilities, Kakak Agent transforms customer service into a 24/7, intelligent, and brand-aligned experience—making world-class support accessible to everyone.
 
 ### Key Capabilities:
 🤖 **Multi-Agent Intelligence** - Specialized agents for scheduling, ticketing, web search, and business insights  
