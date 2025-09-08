@@ -64,19 +64,19 @@ code {
   
   @media (min-width: 768px) {
     .responsive-container {
-      @apply px-6 max-w-4xl;
+      @apply px-4 max-w-4xl;
     }
   }
   
   @media (min-width: 1024px) {
     .responsive-container {
-      @apply px-8 max-w-6xl;
+      @apply px-4 max-w-6xl;
     }
   }
   
   @media (min-width: 1200px) {
     .responsive-container {
-      @apply px-12 max-w-7xl;
+      @apply px-4 max-w-7xl;
     }
   }
 
