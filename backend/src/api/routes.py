@@ -447,7 +447,7 @@ async def configure_channel(
             pass
 
         # Set up Telegram webhook
-        webhook_url = "https://34a91af0c652.ngrok-free.app/telegram_webhook"
+        webhook_url = f"{settings.EXPOSED_BACKEND_API}/telegram_webhook"
         webhook_success = await setup_telegram_webhook(request.telegram_bot_id, webhook_url)
         
         # Check if Google client secret was provided and trigger OAuth flow

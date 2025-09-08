@@ -43,7 +43,15 @@ class Settings(BaseSettings):
     
     # Tavily API Key for Web Search
     TAVILY_API_KEY: str | None = None
+
+    # Company Configuration
+    COMPANY_NAME: str | None = "Your Company Name"
+    BUSINESS_DESCRIPTION: str | None = "A brief description of your business and services"
     
+    # Exposed Backend API (for Telegram Webhook)
+    EXPOSED_BACKEND_API: str | None = "https://f60e3f05cf14.ngrok-free.app"
+
+
     @cached_property
     def SESSION(self):
         """Lazily create and cache a single boto3 Session instance.
