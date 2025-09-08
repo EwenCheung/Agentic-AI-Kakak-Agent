@@ -703,11 +703,11 @@ async def readyz():
 _vector_state = {"status": "idle", "processed": [], "error": None}
 
 @router.post("/knowledge_base/vectorise")
-async def start_vectorise(background_tasks: BackgroundTasks, recreate: bool = True):
+async def start_vectorise(background_tasks: BackgroundTasks, recreate: bool = False):
     """Trigger vectorisation of ALL knowledge base documents stored in DB.
 
-    Query param recreate controls whether the existing vector store is fully rebuilt (default True)
-    or appended to (recreate=False may duplicate chunks for already processed files).
+    Query param recreate controls whether the existing vector store is fully rebuilt (recreate=True)
+    or incrementally updated (default False, which skips already studied documents).
     """
     if _vector_state["status"] == "running":
         return {"status": "running", "message": "Vectorisation already in progress"}

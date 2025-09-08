@@ -16,7 +16,6 @@ const Spinner = ({ label = "Loading..." }) => (
 const DashboardPage = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const [errorEvents, setErrorEvents] = useState(null);
 
   const [openTickets, setOpenTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
@@ -30,6 +29,26 @@ const DashboardPage = () => {
   // Toast notification state and hook
   const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
   const { showSuccess, showError } = useSuccessNotification(setToast);
+
+  const fetchDailyDigest = async (events = [], tickets = []) => {
+    try {
+      setLoadingDigest(true);
+      
+      // Check if both events and tickets are empty
+      if (events.length === 0 && tickets.length === 0) {
+        setDailyDigest("No data is found today. You can go to the configuration page to configure your own AI if you haven't set up an account.");
+        return;
+      }
+      
+      const data = await get("/dashboard/daily_digest");
+      setDailyDigest(data.summarise_digest); // Assuming the response key is 'summarise_digest'
+    } catch (error) {
+      console.error("Error fetching daily digest:", error);
+      setErrorDigest("Failed to load daily digest.");
+    } finally {
+      setLoadingDigest(false);
+    }
+  };
 
     const fetchOpenTickets = async () => {
       try {
@@ -94,43 +113,55 @@ const DashboardPage = () => {
 
   useEffect(() => {
     document.title = "Kakak Agent - Dashboard";
-    const fetchUpcomingEvents = async () => {
-      try {
-        setLoadingEvents(true);
-        const data = await get("/upcoming_events");
-        if (data.events) {
-          setUpcomingEvents(data.events);
-        } else if (data.message && data.message.includes("No upcoming events found")) {
-          // Handle "No upcoming events found" as normal state, not error
-          setUpcomingEvents([]);
-          setErrorEvents(null);
-        } else if (data.message) {
-          setErrorEvents(data.message); // Handle actual error messages
-        }
-      } catch (error) {
-        console.error("Error fetching upcoming events:", error);
-        setErrorEvents("Failed to load upcoming events.");
-      } finally {
-        setLoadingEvents(false);
-      }
+    
+    const fetchAllData = async () => {
+      // Fetch events and tickets first
+      const [eventsResult, ticketsResult] = await Promise.allSettled([
+        (async () => {
+          try {
+            setLoadingEvents(true);
+            const data = await get("/upcoming_events");
+            if (data.events) {
+              setUpcomingEvents(data.events);
+              return data.events;
+            } else {
+              setUpcomingEvents([]);
+              return [];
+            }
+          } catch (error) {
+            console.error("Error fetching upcoming events:", error);
+            setUpcomingEvents([]);
+            return [];
+          } finally {
+            setLoadingEvents(false);
+          }
+        })(),
+        
+        (async () => {
+          try {
+            setLoadingTickets(true);
+            const data = await getAllTickets();
+            setOpenTickets(data);
+            return data;
+          } catch (error) {
+            console.error("Error fetching tickets:", error);
+            setErrorTickets("Failed to load tickets.");
+            return [];
+          } finally {
+            setLoadingTickets(false);
+          }
+        })()
+      ]);
+
+      // Get the results
+      const events = eventsResult.status === 'fulfilled' ? eventsResult.value : [];
+      const tickets = ticketsResult.status === 'fulfilled' ? ticketsResult.value : [];
+      
+      // Now fetch daily digest with the actual data
+      await fetchDailyDigest(events, tickets);
     };
 
-    const fetchDailyDigest = async () => {
-      try {
-        setLoadingDigest(true);
-        const data = await get("/dashboard/daily_digest");
-        setDailyDigest(data.summarise_digest); // Assuming the response key is 'summarise_digest'
-      } catch (error) {
-        console.error("Error fetching daily digest:", error);
-        setErrorDigest("Failed to load daily digest.");
-      } finally {
-        setLoadingDigest(false);
-      }
-    };
-
-    fetchUpcomingEvents();
-    fetchOpenTickets(); // Use the new function
-    fetchDailyDigest();
+    fetchAllData();
   }, []); // Empty dependency array means these effects run once on mount
 
   // handleKnowledgeBaseSubmit removed (moved to KnowledgeBaseUpload page)
@@ -150,11 +181,10 @@ const DashboardPage = () => {
             <div>
               <div className="mb-4 text-responsive-base font-semibold">Upcoming Events</div>
               {loadingEvents && <Spinner />}
-              {errorEvents && <p className="text-red-500 text-responsive-sm">{errorEvents}</p>}
-              {!loadingEvents && !errorEvents && upcomingEvents.length === 0 && (
-                <p className="text-responsive-sm">No upcoming events found.</p>
+              {!loadingEvents && upcomingEvents.length === 0 && (
+                <p className="text-responsive-sm text-gray-600">No upcoming events.</p>
               )}
-              {!loadingEvents && !errorEvents && upcomingEvents.length > 0 && (
+              {!loadingEvents && upcomingEvents.length > 0 && (
                 <div className="table-responsive">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -212,7 +242,7 @@ const DashboardPage = () => {
               {loadingTickets && <p className="text-responsive-sm">Loading tickets...</p>}
               {errorTickets && <p className="text-red-500 text-responsive-sm">{errorTickets}</p>}
               {!loadingTickets && !errorTickets && openTickets.length === 0 && (
-                <p className="text-responsive-sm">No tickets found.</p>
+                <p className="text-responsive-sm text-gray-600">No tickets found.</p>
               )}
               {!loadingTickets && !errorTickets && openTickets.length > 0 && (
                 <div className="table-responsive">
@@ -331,11 +361,15 @@ const DashboardPage = () => {
               {loadingDigest && <p className="text-responsive-sm">Loading insights...</p>}
               {errorDigest && <p className="text-red-500 text-responsive-sm">{errorDigest}</p>}
               {!loadingDigest && !errorDigest && !dailyDigest && (
-                <p className="text-responsive-sm">No insights available.</p>
+                <p className="text-responsive-sm text-gray-600">No insights available.</p>
               )}
               {!loadingDigest && !errorDigest && dailyDigest && (
                 <div 
-                  className="text-responsive-sm bg-gray-50 p-3 md:p-4 rounded-md border border-gray-200"
+                  className={`text-responsive-sm p-3 md:p-4 rounded-md border ${
+                    dailyDigest.includes("No data is found today") 
+                      ? "bg-blue-50 border-blue-200 text-blue-800" 
+                      : "bg-gray-50 border-gray-200"
+                  }`}
                   style={{ whiteSpace: 'pre-wrap' }}
                 >
                   {dailyDigest}

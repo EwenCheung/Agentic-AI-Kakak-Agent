@@ -70,6 +70,12 @@ const KnowledgeBaseUpload = () => {
   };
 
   const startStudy = async () => {
+    // Check if there are no documents
+    if (documents.length === 0) {
+      showError('No Documents', 'Please upload documents first before starting bot study.');
+      return;
+    }
+    
     try {
       const resp = await fetch(
         "http://localhost:8000/knowledge_base/vectorise",
@@ -183,7 +189,7 @@ const KnowledgeBaseUpload = () => {
     <div className="spacing-responsive">
       <h1 className="text-responsive-xl mb-4">Knowledge Base</h1>
       <div className="rounded-lg p-2 md:p-4 lg:p-6 border border-black">
-        <h2 className="text-responsive-lg mt-2">Current Documents</h2>
+        <h2 className="text-responsive-lg mt-2">Current Knowledges</h2>
         <div className="mt-2 border rounded p-2 max-h-64 md:max-h-80 overflow-auto bg-gray-50 text-responsive-xs">
           {documents.length === 0 && (
             <p className="italic">No documents uploaded.</p>
