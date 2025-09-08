@@ -1,0 +1,11 @@
+GEMINI.md
+.venv
+.vscode
+__pycache__
+*.pyc
+.DS_Store
+.idea
+.bin
+length.bin
+.env
+# google-cloud-credential
