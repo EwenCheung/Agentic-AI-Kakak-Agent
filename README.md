@@ -32,12 +32,16 @@ Staff then have to manually check documents, reply, and update calendars — lea
 **Kakak Agent** is an intelligent, multi-agent AI system that provides comprehensive customer support automation for businesses. Built on a sophisticated orchestrator-agent architecture, it seamlessly handles customer inquiries across multiple channels while integrating with business systems.
 
 ### Key Capabilities:
-🤖 **Multi-Agent Intelligence** - Specialized agents for chat, scheduling, ticketing, and business insights  
+🤖 **Multi-Agent Intelligence** - Specialized agents for scheduling, ticketing, web search, and business insights  
 📚 **Knowledge Base Integration** - RAG-powered document search and AI-driven responses  
-📅 **Calendar Management** - Google Calendar integration for appointment scheduling  
+🧠 **Conversation Memory** - Persistent context awareness across sessions using Mem0  
+🌐 **Real-time Information** - Web search capabilities for current events and data  
+�️ **Multi-Language Support** - Native conversations in 15+ languages powered by Claude 3.7 Sonnet
+�📅 **Calendar Management** - Google Calendar integration for appointment scheduling  
 🎫 **Smart Ticketing** - Automated ticket creation, tracking, and escalation  
 📊 **Business Dashboard** - Real-time analytics and daily digest reports  
 🔗 **Multi-Channel Support** - Telegram (implemented) with extensible architecture  
+⚡ **Asynchronous Processing** - Background worker for optimal performance  
 
 ---
 
@@ -46,11 +50,11 @@ Staff then have to manually check documents, reply, and update calendars — lea
 ### Agent-Based Architecture
 The system employs a **hierarchical multi-agent approach** where each agent specializes in specific domains:
 
-1. **Orchestrator Agent**: Central coordinator that analyzes user intent and delegates to specialist agents
-2. **Chat Agent**: Handles general conversations and knowledge base queries  
-3. **Scheduler Agent**: Manages calendar operations and appointment booking
-4. **Ticketing Agent**: Creates, updates, and tracks support tickets
-5. **Daily Digest Agent**: Generates business insights and summaries
+1. **Orchestrator Agent**: Central coordinator with memory awareness that analyzes user intent and delegates to specialist agents
+2. **Scheduler Agent**: Manages calendar operations and appointment booking with Google Calendar integration
+3. **Ticketing Agent**: Creates, updates, and tracks support tickets with priority management
+4. **Web Search Agent**: Retrieves real-time information from the internet when knowledge base is insufficient
+5. **Daily Digest Agent**: Generates business insights and summaries from tickets and calendar events
 
 ### AI Technologies Used:
 - **Large Language Models**: Amazon Bedrock (Claude 3 Haiku) for natural language processing
@@ -58,6 +62,8 @@ The system employs a **hierarchical multi-agent approach** where each agent spec
 - **RAG (Retrieval-Augmented Generation)**: ChromaDB for knowledge base search
 - **Document Processing**: Docling for PDF parsing and chunking
 - **Agent Framework**: Strands AI for agent orchestration
+- **Memory System**: Mem0 for conversation memory and user context persistence
+- **Real-time Search**: Tavily API for current information retrieval
 
 ### Integration Strategy:
 - **Telegram Bot API** for real-time messaging
@@ -65,6 +71,8 @@ The system employs a **hierarchical multi-agent approach** where each agent spec
 - **SQLite Database** for data persistence and conversation memory
 - **FastAPI** for scalable backend architecture
 - **React Frontend** for business dashboard
+- **Background Worker** for asynchronous message processing
+- **Memory System (Mem0)** for conversation context and user preferences
 
 ---
 
@@ -78,16 +86,23 @@ graph TB
         Dashboard[Business Dashboard]
         Config[Configuration Panel]
         KB[Knowledge Base Upload]
+        Channel[Channel Linking]
     end
     
     subgraph "Backend (FastAPI)"
         API[API Gateway]
-        Orchestrator[Orchestrator Agent]
+        Worker[Background Worker]
+        Queue[(Message Queue)]
+        
+        subgraph "Orchestrator Layer"
+            Orchestrator[Memory-Aware Orchestrator]
+            Memory[Mem0 Memory System]
+        end
         
         subgraph "Specialist Agents"
-            Chat[Chat Agent]
             Scheduler[Scheduler Agent]
             Ticketing[Ticketing Agent]
+            WebSearch[Web Search Agent]
             Digest[Daily Digest Agent]
         end
         
@@ -100,8 +115,9 @@ graph TB
     
     subgraph "External Services"
         Telegram[Telegram API]
-        GCal[Google Calendar]
+        GCal[Google Calendar API]
         Bedrock[Amazon Bedrock]
+        Tavily[Tavily Search API]
     end
     
     subgraph "End Users"
@@ -110,26 +126,37 @@ graph TB
     
     Customer --> Telegram
     Telegram --> API
-    API --> Orchestrator
-    Orchestrator --> Chat
+    API --> Queue
+    Worker --> Queue
+    Worker --> Orchestrator
+    
+    Orchestrator --> Memory
     Orchestrator --> Scheduler
     Orchestrator --> Ticketing
+    Orchestrator --> WebSearch
     Orchestrator --> Digest
     
-    Chat --> Telegram
     Scheduler --> GCal
+    WebSearch --> Tavily
+    Orchestrator --> Telegram
     
     Dashboard --> API
     Config --> API
     KB --> API
+    Channel --> API
     
-    Chat --> SQLite
     Scheduler --> SQLite
     Ticketing --> SQLite
+    Digest --> SQLite
+    Orchestrator --> SQLite
     
-    Chat --> Vector
-    Chat --> Bedrock
+    Orchestrator --> Vector
     Orchestrator --> Bedrock
+    Scheduler --> Bedrock
+    Ticketing --> Bedrock
+    Digest --> Bedrock
+    WebSearch --> Bedrock
+    Memory --> Bedrock
 ```
 
 ### Technology Stack
@@ -138,9 +165,12 @@ graph TB
 - **Framework**: FastAPI with async/await support
 - **AI Platform**: Amazon Bedrock (Claude 3 Haiku, Titan Embeddings)
 - **Agent Framework**: Strands AI for agent orchestration
+- **Memory System**: Mem0 for conversation memory and context persistence
 - **Vector Database**: ChromaDB for semantic search
 - **Database**: SQLite with SQLAlchemy ORM
 - **Document Processing**: Docling for PDF parsing
+- **Real-time Search**: Tavily API for current information retrieval
+- **Background Processing**: Async worker for message queue processing
 - **API Integration**: Google Calendar API, Telegram Bot API
 
 #### Frontend:
@@ -155,6 +185,8 @@ graph TB
 - **Environment**: Virtual environment management
 - **Configuration**: Environment variables and database-stored configs
 - **File Handling**: Multi-file upload with content type detection
+- **Message Processing**: SQLite-based queue with background worker
+- **Memory Storage**: Persistent conversation context via Mem0
 
 ---
 
@@ -172,6 +204,8 @@ graph TB
 - **API-First Design**: Enables integration with existing business systems
 - **Real-Time Processing**: Asynchronous background tasks for optimal performance
 - **Secure Configuration**: Database-stored credentials and environment-based settings
+- **Memory-Aware**: Persistent conversation context for personalized interactions
+- **Current Information**: Real-time web search for up-to-date responses
 
 ---
 
@@ -179,23 +213,35 @@ graph TB
 
 ### Phase 1 (Current) - Foundation ✅
 - Multi-agent architecture implementation
-- Telegram integration
-- Knowledge base RAG system
-- Calendar management
-- Support ticket system
-- Business dashboard
+- Memory-aware orchestrator with Mem0 integration
+- Telegram integration with background worker processing
+- Knowledge base RAG system with ChromaDB
+- Real-time web search capabilities via Tavily
+- Calendar management with Google Calendar API
+- Support ticket system with priority management
+- Business dashboard with daily digest functionality
+- Native conversations in 15+ languages including English, Chinese, and Spanish
 
-### Phase 2 - Enhanced Intelligence
-- **Advanced NLP**: Fine-tuned models for domain-specific responses
-- **Sentiment Analysis**: Automatic escalation based on customer emotion
-- **Multi-Language Support**: Expand to serve global customer base
-- **Voice Integration**: WhatsApp voice message processing
+### Phase 2 - Enhanced Intelligence & Multi-Channel 🧠
+- **Advanced Sentiment Analysis**: Automatic escalation based on customer emotion and urgency
+- **Voice Integration**: WhatsApp voice message processing and voice-to-text capabilities
+- **Multi-Modal AI**: Process images, documents, and voice messages intelligently
+- **Predictive Customer Service**: ML models predicting customer needs and proactive support
+- **Smart Document Processing**: Automatic parsing of contracts, invoices, and business documents
+- **Cross-Channel Orchestration**: Seamless customer journey across WhatsApp, Email, and Web Chat
+- **Advanced Analytics Dashboard**: Real-time insights, customer behavior analysis, and business metrics
+- **Custom Business Intelligence**: AI-powered BI dashboards tailored for each company's KPIs and metrics
 
-### Phase 3 - Multi-Channel Expansion
-- **Computer Vision** for document and image processing
-- **Predictive Customer Service** using historical data
-- **Custom AI Model Training** on company-specific data
-- **Advanced Personalization** using customer behavior analysis
+### Phase 3 - Enterprise Integration & AI Workforce 🚀
+- **Enterprise Connectors**: Native integration with Salesforce, HubSpot, Slack, and major CRM systems
+- **Custom AI Agent Creation**: Build specialized agents for specific business functions
+- **Advanced Workflow Automation**: AI-driven business process automation and optimization
+- **Computer Vision Suite**: Automatic processing of receipts, IDs, and business documents
+- **Federated Learning**: AI that learns across customer interactions while preserving privacy
+- **White-label Solution**: Complete platform for businesses to deploy their own AI support system
+- **Advanced Compliance**: Industry-specific compliance monitoring (GDPR, HIPAA, financial regulations)
+- **API Marketplace**: Extensible platform with third-party integrations and custom plugins
+- **Enterprise BI Suite**: Comprehensive business intelligence platform with custom dashboards, automated reporting, and AI-driven insights for executive decision-making
 
 ## 🚀 Getting Started
 
@@ -205,6 +251,8 @@ graph TB
 - AWS Account (for Bedrock access)
 - Google Cloud Account (for Calendar API)
 - Telegram Bot Token
+- Tavily API Key (for web search functionality)
+- Mem0 configuration (for memory system)
 
 ### Quick Setup
 
@@ -229,6 +277,19 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
+5. **Start Backend**
+```bash
+cd ../backend
+source .venv/bin/activate
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+```bash
+# Open another tab
+cd ../backend
+source .venv/bin/activate
+python -m src.worker
+```
+
 4. **Frontend Setup**
 ```bash
 cd ../frontend
@@ -236,18 +297,25 @@ npm install
 npm start
 ```
 
-5. **Start Backend**
-```bash
-cd ../backend
-source .venv/bin/activate
-python -m src.main
-```
-
 ### Configuration
-1. Access the dashboard at `http://localhost:3000`
-2. Configure Telegram bot token and Google Calendar credentials
-3. Upload knowledge base documents
-4. Test the system via Telegram
+1. **Access Dashboard**: Navigate to `http://localhost:3000` in your browser
+
+2. **Configure API Credentials**: 
+   - Add your Telegram bot token
+   - Set up Google Calendar API credentials
+
+3. **Upload Knowledge Base**: Upload your company documents (PDFs, docs) for AI training
+
+4. **Customize Settings**: Set tone, language preferences, and business-specific configurations
+
+5. **Test Integration**: Send a test message via Telegram to verify everything works
+
+6. **🎉 Your personalized AI assistant is ready to serve customers!**
+
+### Next Steps
+- Start chatting with your AI agent via Telegram
+- Monitor customer interactions through the business dashboard
+- Review daily digest reports for business insights
+- Scale by adding more knowledge base documents as neededYou
 
 ---
-

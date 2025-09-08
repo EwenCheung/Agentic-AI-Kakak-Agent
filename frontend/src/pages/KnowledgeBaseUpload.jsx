@@ -272,11 +272,11 @@ const KnowledgeBaseUpload = () => {
         <form onSubmit={handleSubmit} className="flex flex-col mt-4 space-y-4">
           <div>
             <label className="block text-responsive-sm font-medium text-gray-700">
-              Select Files (PDF/Text)
+              Select Files (PDF only)
             </label>
             <input
               type="file"
-              accept=".pdf,.txt"
+              accept=".pdf"
               multiple
               className="mt-1 block w-full text-responsive-xs text-gray-500 
                 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 
