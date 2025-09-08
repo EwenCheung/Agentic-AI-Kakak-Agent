@@ -57,7 +57,7 @@ The system employs a **hierarchical multi-agent approach** where each agent spec
 5. **Daily Digest Agent**: Generates business insights and summaries from tickets and calendar events
 
 ### AI Technologies Used:
-- **Large Language Models**: Amazon Bedrock (Claude 3 Haiku) for natural language processing
+- **Large Language Models**: Amazon Bedrock (Claude 3.7 Sonnet) for natural language processing
 - **Vector Embeddings**: Amazon Titan Embed for semantic search
 - **RAG (Retrieval-Augmented Generation)**: ChromaDB for knowledge base search
 - **Document Processing**: Docling for PDF parsing and chunking
@@ -82,19 +82,30 @@ The system employs a **hierarchical multi-agent approach** where each agent spec
 
 ```mermaid
 graph TB
-    subgraph "Frontend (React)"
+    %% === User Layer ===
+    Customer[Customer via Telegram]
+    
+    %% === Frontend Layer ===
+    subgraph "Frontend Dashboard (React)"
         Dashboard[Business Dashboard]
         Config[Configuration Panel]
         KB[Knowledge Base Upload]
-        Channel[Channel Linking]
+        Channel[Channel Management]
     end
     
-    subgraph "Backend (FastAPI)"
+    %% === Communication Channel ===
+    Telegram[Telegram Bot API]
+    
+    %% === Backend Core ===
+    subgraph "Backend Core (FastAPI)"
         API[API Gateway]
         Worker[Background Worker]
         Queue[(Message Queue)]
-        
-        subgraph "Orchestrator Layer"
+    end
+    
+    %% === AI Intelligence Layer ===
+    subgraph "AI Intelligence Layer"
+        subgraph "Orchestrator Core"
             Orchestrator[Memory-Aware Orchestrator]
             Memory[Mem0 Memory System]
         end
@@ -106,64 +117,108 @@ graph TB
             Digest[Daily Digest Agent]
         end
         
-        subgraph "Data Layer"
-            SQLite[(SQLite DB)]
-            Vector[(ChromaDB)]
-            Files[File Storage]
+        subgraph "AI Tools"
+            KBSearch[Knowledge Base Search]
+            MessageSend[Message Sender]
         end
     end
     
-    subgraph "External Services"
-        Telegram[Telegram API]
+    %% === Data Storage Layer ===
+    subgraph "Data Storage Layer"
+        SQLite[(SQLite Database)]
+        Vector[(ChromaDB Vector Store)]
+        Files[File Storage]
+    end
+    
+    %% === External Services ===
+    subgraph "External AI & APIs"
+        Bedrock[Amazon Bedrock<br/>Claude 3.7 Sonnet]
         GCal[Google Calendar API]
-        Bedrock[Amazon Bedrock]
         Tavily[Tavily Search API]
     end
     
-    subgraph "End Users"
-        Customer[Customer via Telegram]
-    end
+    %% === Primary User Flow ===
+    Customer -->|sends message| Telegram
+    Telegram -->|webhook| API
+    API -->|queues| Queue
+    Worker -->|processes| Queue
+    Worker -->|invokes| Orchestrator
     
-    Customer --> Telegram
-    Telegram --> API
-    API --> Queue
-    Worker --> Queue
-    Worker --> Orchestrator
+    %% === AI Processing Flow ===
+    Orchestrator -.->|retrieves context| Memory
+    Orchestrator -->|delegates to| Scheduler
+    Orchestrator -->|delegates to| Ticketing
+    Orchestrator -->|delegates to| WebSearch
+    Orchestrator -->|delegates to| Digest
+    Orchestrator -->|uses| KBSearch
+    Orchestrator -->|responds via| MessageSend
     
-    Orchestrator --> Memory
-    Orchestrator --> Scheduler
-    Orchestrator --> Ticketing
-    Orchestrator --> WebSearch
-    Orchestrator --> Digest
+    %% === Frontend Admin Flow ===
+    Dashboard -->|monitoring| API
+    Config -->|settings| API
+    KB -->|upload docs| API
+    Channel -->|manage| API
     
-    Scheduler --> GCal
-    WebSearch --> Tavily
-    Orchestrator --> Telegram
+    %% === External Integrations ===
+    Scheduler -->|manages events| GCal
+    WebSearch -->|real-time search| Tavily
+    MessageSend -->|sends replies| Telegram
     
-    Dashboard --> API
-    Config --> API
-    KB --> API
-    Channel --> API
+    %% === Data Persistence ===
+    Scheduler -.->|stores appointments| SQLite
+    Ticketing -.->|stores tickets| SQLite
+    Digest -.->|stores reports| SQLite
+    Memory -.->|stores conversations| SQLite
+    KBSearch -.->|semantic search| Vector
+    Files -.->|document storage| SQLite
     
-    Scheduler --> SQLite
-    Ticketing --> SQLite
-    Digest --> SQLite
-    Orchestrator --> SQLite
+    %% === AI Service Connections ===
+    Orchestrator -.->|LLM calls| Bedrock
+    Scheduler -.->|LLM calls| Bedrock
+    Ticketing -.->|LLM calls| Bedrock
+    WebSearch -.->|LLM calls| Bedrock
+    Digest -.->|LLM calls| Bedrock
+    Memory -.->|embeddings| Bedrock
+    KBSearch -.->|embeddings| Bedrock
     
-    Orchestrator --> Vector
-    Orchestrator --> Bedrock
-    Scheduler --> Bedrock
-    Ticketing --> Bedrock
-    Digest --> Bedrock
-    WebSearch --> Bedrock
-    Memory --> Bedrock
+    %% === Styling ===
+    classDef user fill:#ffebee,stroke:#d32f2f,stroke-width:3px,color:#000
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef backend fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef orchestrator fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#000
+    classDef agents fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000
+    classDef tools fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef data fill:#e0f2f1,stroke:#00796b,stroke-width:2px,color:#000
+    classDef external fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef channel fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
+    
+    class Customer user
+    class Dashboard,Config,KB,Channel frontend
+    class API,Worker,Queue backend
+    class Orchestrator,Memory orchestrator
+    class Scheduler,Ticketing,WebSearch,Digest agents
+    class KBSearch,MessageSend tools
+    class SQLite,Vector,Files data
+    class Bedrock,GCal,Tavily external
+    class Telegram channel
 ```
+
+**Architecture Legend:**
+- **Customer**: End users interacting via Telegram
+- **API Gateway**: FastAPI backend handling all requests
+- **Background Worker**: Async message processor
+- **Orchestrator**: Central AI coordinator with memory
+- **Specialist Agents**: Domain-specific AI agents
+- **Knowledge Base**: RAG system for company docs
+- **Memory System**: Persistent conversation context
+- **Databases**: SQLite for structured data, ChromaDB for vectors
+- **Amazon Bedrock**: Claude 3.7 Sonnet LLM & Titan embeddings
 
 ### Technology Stack
 
 #### Backend:
 - **Framework**: FastAPI with async/await support
-- **AI Platform**: Amazon Bedrock (Claude 3 Haiku, Titan Embeddings)
+- **AI Platform**: Amazon Bedrock (Claude 3.7 Sonnet, Titan Embeddings)
 - **Agent Framework**: Strands AI for agent orchestration
 - **Memory System**: Mem0 for conversation memory and context persistence
 - **Vector Database**: ChromaDB for semantic search
@@ -285,14 +340,14 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 ```bash
 # Open another tab
-cd ../backend
+cd backend
 source .venv/bin/activate
 python -m src.worker
 ```
 
 4. **Frontend Setup**
 ```bash
-cd ../frontend
+cd frontend
 npm install
 npm start
 ```
@@ -303,6 +358,7 @@ npm start
 2. **Configure API Credentials**: 
    - Add your Telegram bot token
    - Set up Google Calendar API credentials
+   - Expose port 8000 for backend
 
 3. **Upload Knowledge Base**: Upload your company documents (PDFs, docs) for AI training
 
@@ -316,6 +372,6 @@ npm start
 - Start chatting with your AI agent via Telegram
 - Monitor customer interactions through the business dashboard
 - Review daily digest reports for business insights
-- Scale by adding more knowledge base documents as neededYou
+- Scale by adding more knowledge base documents as needed
 
 ---
