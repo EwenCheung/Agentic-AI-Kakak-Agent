@@ -36,7 +36,7 @@ Staff then have to manually check documents, reply, and update calendars — lea
 📚 **Knowledge Base Integration** - RAG-powered document search and AI-driven responses  
 🧠 **Conversation Memory** - Persistent context awareness across sessions using Mem0  
 🌐 **Real-time Information** - Web search capabilities for current events and data  
-�️ **Multi-Language Support** - Native conversations in 15+ languages powered by Claude 3.7 Sonnet
+�️ **Multi-Language Support** - Native conversations in 15+ languages powered by Claude 3 Haiku
 �📅 **Calendar Management** - Google Calendar integration for appointment scheduling  
 🎫 **Smart Ticketing** - Automated ticket creation, tracking, and escalation  
 📊 **Business Dashboard** - Real-time analytics and daily digest reports  
@@ -57,7 +57,7 @@ The system employs a **hierarchical multi-agent approach** where each agent spec
 5. **Daily Digest Agent**: Generates business insights and summaries from tickets and calendar events
 
 ### AI Technologies Used:
-- **Large Language Models**: Amazon Bedrock (Claude 3.7 Sonnet) for natural language processing
+- **Large Language Models**: Amazon Bedrock (Claude 3 Haiku) for natural language processing
 - **Vector Embeddings**: Amazon Titan Embed for semantic search
 - **RAG (Retrieval-Augmented Generation)**: ChromaDB for knowledge base search
 - **Document Processing**: Docling for PDF parsing and chunking
@@ -132,7 +132,7 @@ graph TB
     
     %% === External Services ===
     subgraph "External AI & APIs"
-        Bedrock[Amazon Bedrock<br/>Claude 3.7 Sonnet]
+        Bedrock[Amazon Bedrock<br/>Claude 3 Haiku]
         GCal[Google Calendar API]
         Tavily[Tavily Search API]
     end
@@ -212,13 +212,13 @@ graph TB
 - **Knowledge Base**: RAG system for company docs
 - **Memory System**: Persistent conversation context
 - **Databases**: SQLite for structured data, ChromaDB for vectors
-- **Amazon Bedrock**: Claude 3.7 Sonnet LLM & Titan embeddings
+- **Amazon Bedrock**: Claude 3 Haiku LLM & Titan embeddings
 
 ### Technology Stack
 
 #### Backend:
 - **Framework**: FastAPI with async/await support
-- **AI Platform**: Amazon Bedrock (Claude 3.7 Sonnet, Titan Embeddings)
+- **AI Platform**: Amazon Bedrock (Claude 3 Haiku, Titan Embeddings)
 - **Agent Framework**: Strands AI for agent orchestration
 - **Memory System**: Mem0 for conversation memory and context persistence
 - **Vector Database**: ChromaDB for semantic search
