@@ -217,3 +217,7 @@ __marimo__/
 
 # Env files
 *.env
+.env.ewen
+
+# Node modules
+node_modules/
