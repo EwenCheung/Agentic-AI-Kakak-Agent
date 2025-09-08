@@ -24,13 +24,13 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full bg-white shadow-sm border-b border-gray-200 mb-4 sm:mb-6">
+    <header className="mx-4 bg-white rounded-lg shadow-sm border-b border-gray-200 mb-4 sm:mb-6">
       <div className="responsive-container">
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo/Brand */}
           <div className="flex-shrink-0">
             <h1 
-              className="text-responsive-xl font-bold text-gray-900 cursor-pointer font-montserrat"
+              className="text-responsive-xl text-gray-900 cursor-pointer font-montserrat"
               onClick={() => handleNavigation("/")}
             >
               Kakak Agent

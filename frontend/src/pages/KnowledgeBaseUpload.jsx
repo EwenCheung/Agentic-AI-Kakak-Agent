@@ -3,6 +3,7 @@ import DownloadIcon from "../assets/download.png";
 import DeleteIcon from "../assets/delete.png";
 import Toast from "../components/Toast";
 import useSuccessNotification from "../hooks/useSuccessNotification";
+import BookIcon from "../assets/book.png";
 
 const KnowledgeBaseUpload = () => {
   const [files, setFiles] = useState([]); // File objects
@@ -15,9 +16,14 @@ const KnowledgeBaseUpload = () => {
   const [studyError, setStudyError] = useState(null);
   const [polling, setPolling] = useState(null);
   const [deletingIds, setDeletingIds] = useState([]);
-  
+
   // Toast notification state and hook
-  const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
+  const [toast, setToast] = useState({
+    show: false,
+    type: "",
+    title: "",
+    message: "",
+  });
   const { showSuccess, showError } = useSuccessNotification(setToast);
 
   const loadDocuments = async () => {
@@ -53,12 +59,18 @@ const KnowledgeBaseUpload = () => {
             clearInterval(id);
             setPolling(null);
             loadDocuments();
-            
+
             // Show success notification when study completes
             if (data.status === "completed") {
-              showSuccess('Bot Study Complete', 'The bot has successfully learned from your documents.');
+              showSuccess(
+                "Bot Study Complete",
+                "The bot has successfully learned from your documents."
+              );
             } else if (data.status === "error") {
-              showError('Bot Study Failed', data.error || 'An error occurred during the study process.');
+              showError(
+                "Bot Study Failed",
+                data.error || "An error occurred during the study process."
+              );
             }
           }
         }
@@ -72,10 +84,13 @@ const KnowledgeBaseUpload = () => {
   const startStudy = async () => {
     // Check if there are no documents
     if (documents.length === 0) {
-      showError('No Documents', 'Please upload documents first before starting bot study.');
+      showError(
+        "No Documents",
+        "Please upload documents first before starting bot study."
+      );
       return;
     }
-    
+
     try {
       const resp = await fetch(
         "http://localhost:8000/knowledge_base/vectorise",
@@ -122,12 +137,21 @@ const KnowledgeBaseUpload = () => {
       );
       if (resp.ok) {
         await loadDocuments();
-        showSuccess('File Deleted', 'The document has been successfully removed from the knowledge base.');
+        showSuccess(
+          "File Deleted",
+          "The document has been successfully removed from the knowledge base."
+        );
       } else {
-        showError('Delete Failed', 'Failed to delete the document. Please try again.');
+        showError(
+          "Delete Failed",
+          "Failed to delete the document. Please try again."
+        );
       }
     } catch (e) {
-      showError('Delete Error', 'An error occurred while deleting the document.');
+      showError(
+        "Delete Error",
+        "An error occurred while deleting the document."
+      );
     } finally {
       setDeletingIds((prev) => prev.filter((x) => x !== id));
     }
@@ -168,18 +192,22 @@ const KnowledgeBaseUpload = () => {
         setDescriptions({});
         e.target.reset();
         loadDocuments();
-        showSuccess('Files Uploaded', `${files.length} document(s) have been successfully uploaded to the knowledge base.`);
+        showSuccess(
+          "Files Uploaded",
+          `${files.length} document(s) have been successfully uploaded to the knowledge base.`
+        );
       } else {
-        const errorMessage = typeof data.detail === "string"
-          ? data.detail
-          : JSON.stringify(data.detail) || "Failed to upload documents.";
+        const errorMessage =
+          typeof data.detail === "string"
+            ? data.detail
+            : JSON.stringify(data.detail) || "Failed to upload documents.";
         setMessage(errorMessage);
-        showError('Upload Failed', errorMessage);
+        showError("Upload Failed", errorMessage);
       }
     } catch (err) {
       const errorMessage = "An error occurred during documents upload.";
       setMessage(errorMessage);
-      showError('Upload Error', errorMessage);
+      showError("Upload Error", errorMessage);
     } finally {
       setUploading(false);
     }
@@ -187,7 +215,10 @@ const KnowledgeBaseUpload = () => {
 
   return (
     <div className="spacing-responsive">
-      <h1 className="text-responsive-xl mb-4">Knowledge Base</h1>
+      <div className="flex items-center mb-4">
+        <h1 className="text-responsive-xl mr-2">Knowledge Base</h1>
+        <img src={BookIcon} alt="" className="h-7" />
+      </div>
       <div className="rounded-lg p-2 md:p-4 lg:p-6 border border-black">
         <h2 className="text-responsive-lg mt-2">Current Knowledges</h2>
         <div className="mt-2 border rounded p-2 max-h-64 md:max-h-80 overflow-auto bg-gray-50 text-responsive-xs">
@@ -202,7 +233,9 @@ const KnowledgeBaseUpload = () => {
                     <th className="py-1 pr-2">File</th>
                     <th className="py-1 pr-2 hidden sm:table-cell">Type</th>
                     <th className="py-1 pr-2 hidden md:table-cell">Size</th>
-                    <th className="py-1 pr-2 hidden lg:table-cell">Description</th>
+                    <th className="py-1 pr-2 hidden lg:table-cell">
+                      Description
+                    </th>
                     <th className="py-1 pr-2 hidden sm:table-cell">Uploaded</th>
                     <th className="py-1 pr-2">Status</th>
                     <th className="py-1 pr-2">Actions</th>
@@ -211,12 +244,18 @@ const KnowledgeBaseUpload = () => {
                 <tbody>
                   {documents.map((doc) => (
                     <tr key={doc.id} className="border-b last:border-none">
-                      <td className="py-1 pr-2 break-all max-w-0 truncate">{doc.file_name}</td>
-                      <td className="py-1 pr-2 hidden sm:table-cell">{doc.content_type || "-"}</td>
+                      <td className="py-1 pr-2 break-all max-w-0 truncate">
+                        {doc.file_name}
+                      </td>
+                      <td className="py-1 pr-2 hidden sm:table-cell">
+                        {doc.content_type || "-"}
+                      </td>
                       <td className="py-1 pr-2 hidden md:table-cell">
                         {doc.size_bytes != null ? doc.size_bytes : "-"}
                       </td>
-                      <td className="py-1 pr-2 hidden lg:table-cell">{doc.description || "-"}</td>
+                      <td className="py-1 pr-2 hidden lg:table-cell">
+                        {doc.description || "-"}
+                      </td>
                       <td className="py-1 pr-2 hidden sm:table-cell">
                         {doc.created_at
                           ? new Date(doc.created_at).toLocaleDateString()
@@ -228,14 +267,26 @@ const KnowledgeBaseUpload = () => {
                           onClick={() => handleDownload(doc.id, doc.file_name)}
                           className="px-1 py-0.5 border border-black rounded text-white text-[10px] bg-blue-500 hover:bg-blue-600"
                         >
-                          <img src={DownloadIcon} alt="Download" className="w-3 h-3"/>
+                          <img
+                            src={DownloadIcon}
+                            alt="Download"
+                            className="w-3 h-3"
+                          />
                         </button>
                         <button
                           disabled={deletingIds.includes(doc.id)}
                           onClick={() => handleDelete(doc.id)}
                           className="px-1 py-0.5 border border-black rounded text-white text-[10px] disabled:opacity-50 bg-red-500 hover:bg-red-600"
                         >
-                          {deletingIds.includes(doc.id) ? "..." : <img src={DeleteIcon} alt="Delete" className="w-3 h-3"/>}
+                          {deletingIds.includes(doc.id) ? (
+                            "..."
+                          ) : (
+                            <img
+                              src={DeleteIcon}
+                              alt="Delete"
+                              className="w-3 h-3"
+                            />
+                          )}
                         </button>
                       </td>
                     </tr>
@@ -245,7 +296,7 @@ const KnowledgeBaseUpload = () => {
             </div>
           )}
         </div>
-        
+
         <h2 className="text-responsive-lg mt-6">Add Documents</h2>
         <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <button
@@ -268,7 +319,7 @@ const KnowledgeBaseUpload = () => {
             )}
           </div>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="flex flex-col mt-4 space-y-4">
           <div>
             <label className="block text-responsive-sm font-medium text-gray-700">
@@ -286,7 +337,7 @@ const KnowledgeBaseUpload = () => {
               required
             />
           </div>
-          
+
           {files.length > 0 && (
             <div className="space-y-3">
               {files.map((f, idx) => (
@@ -308,7 +359,7 @@ const KnowledgeBaseUpload = () => {
               ))}
             </div>
           )}
-          
+
           <button
             type="submit"
             className="flex justify-center border border-black rounded-md px-6 py-2 
@@ -319,7 +370,7 @@ const KnowledgeBaseUpload = () => {
             {uploading ? "Uploading..." : "Upload Documents"}
           </button>
         </form>
-        
+
         {message && (
           <p className="mt-3 text-responsive-sm p-3 rounded-md bg-gray-50 border border-gray-200">
             {message}
