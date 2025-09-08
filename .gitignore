@@ -1,7 +1,7 @@
-# Frontend specific
-/frontend/node_modules
-/frontend/build
-/frontend/.env*
+# React app (root level)
+/node_modules
+/build
+.env*
 
 # General
 .DS_Store
