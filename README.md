@@ -310,14 +310,18 @@ graph TB
 - Mem0 configuration (for memory system)
 
 ### Quick Setup
+1. **Pre-setup**
+- Telegram bot
+- Google Calender API Client
+- Expose port 8000
 
-1. **Clone Repository**
+2. **Clone Repository**
 ```bash
 git clone https://github.com/EwenCheung/Agentic-AI-Kakak-Agent.git
 cd Agentic-AI-Kakak-Agent
 ```
 
-2. **Backend Setup**
+3. **Backend Setup**
 ```bash
 cd backend
 python -m venv .venv
@@ -325,7 +329,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. **Environment Configuration**
+4. **Environment Configuration**
 ```bash
 # Create .env file with required credentials
 cp .env.example .env
@@ -345,7 +349,7 @@ source .venv/bin/activate
 python -m src.worker
 ```
 
-4. **Frontend Setup**
+6. **Frontend Setup**
 ```bash
 cd frontend
 npm install
@@ -358,7 +362,7 @@ npm start
 2. **Configure API Credentials**: 
    - Add your Telegram bot token
    - Set up Google Calendar API credentials
-   - Expose port 8000 for backend
+   - Set tone
 
 3. **Upload Knowledge Base**: Upload your company documents (PDFs, docs) for AI training
 
