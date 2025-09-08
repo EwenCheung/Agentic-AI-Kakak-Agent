@@ -74,6 +74,19 @@ The system employs a **hierarchical multi-agent approach** where each agent spec
 - **Background Worker** for asynchronous message processing
 - **Memory System (Mem0)** for conversation context and user preferences
 
+## How Kakak Agent Works
+1. A customer sends a message on Telegram.
+2. The message is instantly received by our Telegram bot.
+3. Telegram forwards the message to our backend system using a secure webhook.
+4. The backend adds the message to a queue, so nothing gets missed—even if lots of people are messaging at once.
+5. A background worker picks up the message from the queue and gets to work.
+6. The Orchestrator Agent (the “brain” of the system) reads the message, checks past conversations, and figures out what the customer needs.
+7. If needed, the Orchestrator asks specialist agents for help—like the Scheduler for appointments, Ticketing for support issues, or Web Search for real-time info.
+8. The agents can look up information in your company’s knowledge base, check the calendar, or even search the web to find the best answer.
+9. Once the right response is ready, the system sends it back to the customer on Telegram—fast and friendly.
+10. Meanwhile, all conversations and actions are saved, so the agent remembers each customer and can provide personalized service next time.
+11. Business owners and staff can monitor everything, upload new documents, and adjust settings easily from the dashboard.
+
 ---
 
 ## 🏗️ Technical Architecture
@@ -286,6 +299,7 @@ graph TB
 - **Cross-Channel Orchestration**: Seamless customer journey across WhatsApp, Email, and Web Chat
 - **Advanced Analytics Dashboard**: Real-time insights, customer behavior analysis, and business metrics
 - **Custom Business Intelligence**: AI-powered BI dashboards tailored for each company's KPIs and metrics
+- **Parallel Request Handling**: Efficiently manage and respond to multiple customer requests at the same time
 
 ### Phase 3 - Enterprise Integration & AI Workforce 🚀
 - **Enterprise Connectors**: Native integration with Salesforce, HubSpot, Slack, and major CRM systems
