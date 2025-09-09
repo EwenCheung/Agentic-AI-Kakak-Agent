@@ -1,6 +1,6 @@
 # Kakak Agent - Intelligent Multi-Channel Customer Support System
 
-**Team:** Three Musketeers -Ewen Cheung,Ng Shi Yang, Saw Yong Xuen
+**Team:** Three Musketeers -Ewen Cheung, Ng Shi Yang, Saw Yong Xuen
 
 **Competition:** AI Hackathon 2025  
 
