@@ -1,4 +1,19 @@
-# SuperConfig - Intelligent Multi-Channel Customer Support System
+# 🧠 SuperConfig  
+**Launch your own AI Business Agent in under 3 minutes.**  
+_No coding. Just clicks. Fast. Smart. Yours._
+
+---
+
+## 🚀 Overview  
+SuperConfig lets anyone—businesses or individuals—set up a personalized AI Business Agent in minutes. Handle customer support, automate workflows, and manage conversations across multiple channels effortlessly.
+
+---
+
+## 💡 Features  
+- ⚙️ Easy 3-minute setup  
+- 🤖 Personalized AI assistant  
+- 💬 Multi-channel customer support  
+- 🔐 Secure and customizable  
 
 **Team:** Three Musketeers -Ewen Cheung, Ng Shi Yang, Saw Yong Xuen
 
