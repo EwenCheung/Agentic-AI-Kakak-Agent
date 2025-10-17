@@ -1,4 +1,4 @@
-# Kakak Agent - Intelligent Multi-Channel Customer Support System
+# SuperConfig - Intelligent Multi-Channel Customer Support System
 
 **Team:** Three Musketeers -Ewen Cheung, Ng Shi Yang, Saw Yong Xuen
 
@@ -28,19 +28,19 @@ Staff then have to manually check documents, reply, and update calendars — lea
 
 ## 🎯 Target Customers
 
-Kakak Agent is designed to serve two main groups:
+SuperConfig is designed to serve two main groups:
 
 ### 1. Businesses (Our Direct Customers)
-We provide Kakak Agent as a powerful, easy-to-deploy AI assistant platform for businesses of all sizes—especially SMEs, startups, and service providers who want to automate customer support, streamline operations, and deliver 24/7 personalized service without technical hassle. Businesses can quickly set up their own branded AI agent, integrate it with their existing channels (like Telegram), and manage everything from a user-friendly dashboard.
+We provide SuperConfig as a powerful, easy-to-deploy AI assistant platform for businesses of all sizes—especially SMEs, startups, and service providers who want to automate customer support, streamline operations, and deliver 24/7 personalized service without technical hassle. Businesses can quickly set up their own branded AI agent, integrate it with their existing channels (like Telegram), and manage everything from a user-friendly dashboard.
 
 ### 2. End Users (Business Customers)
-These are the customers and clients who interact with the business through Kakak Agent—whether they’re booking appointments, asking questions, or seeking support. Kakak Agent ensures every end user receives fast, intelligent, and personalized responses, creating a seamless and satisfying customer experience for the business’s audience.
+These are the customers and clients who interact with the business through SuperConfig—whether they’re booking appointments, asking questions, or seeking support. SuperConfig ensures every end user receives fast, intelligent, and personalized responses, creating a seamless and satisfying customer experience for the business’s audience.
 
 ---
 
 ## 💡 Solution Overview
 
-**Kakak Agent** is an innovative, multi-agent AI customer support platform designed to empower every business with their own personalized AI assistant—set up in just a few clicks. Built for simplicity and power, Kakak Agent enables anyone, regardless of technical background, to launch a fully customized support agent that understands your company’s knowledge, manages appointments, handles tickets, and communicates naturally with customers across multiple channels like Telegram. With seamless integration, persistent memory, and advanced language capabilities, Kakak Agent transforms customer service into a 24/7, intelligent, and brand-aligned experience—making world-class support accessible to everyone.
+**SuperConfig** is an innovative, multi-agent AI customer support platform designed to empower every business with their own personalized AI assistant—set up in just a few clicks. Built for simplicity and power, SuperConfig enables anyone, regardless of technical background, to launch a fully customized support agent that understands your company’s knowledge, manages appointments, handles tickets, and communicates naturally with customers across multiple channels like Telegram. With seamless integration, persistent memory, and advanced language capabilities, SuperConfig transforms customer service into a 24/7, intelligent, and brand-aligned experience—making world-class support accessible to everyone.
 
 ### Key Capabilities:
 🤖 **Multi-Agent Intelligence** - Specialized agents for scheduling, ticketing, web search, and business insights  
@@ -85,7 +85,7 @@ The system employs a **hierarchical multi-agent approach** where each agent spec
 - **Background Worker** for asynchronous message processing
 - **Memory System (Mem0)** for conversation context and user preferences
 
-## How Kakak Agent Works
+## How SuperConfig Works
 1. A customer sends a message on Telegram.
 2. The message is instantly received by our Telegram bot.
 3. Telegram forwards the message to our backend system using a secure webhook.

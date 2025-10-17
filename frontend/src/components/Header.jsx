@@ -33,7 +33,7 @@ const Header = () => {
               className="text-responsive-xl text-gray-900 cursor-pointer font-montserrat"
               onClick={() => handleNavigation("/")}
             >
-              Kakak Agent
+              SuperConfig
             </h1>
           </div>
 

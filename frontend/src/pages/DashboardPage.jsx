@@ -112,7 +112,7 @@ const DashboardPage = () => {
   };
 
   useEffect(() => {
-    document.title = "Kakak Agent - Dashboard";
+    document.title = "SuperConfig - Dashboard";
     
     const fetchAllData = async () => {
       // Fetch events and tickets first

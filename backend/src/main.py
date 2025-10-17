@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Create the database tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Kakak Agent API")
+app = FastAPI(title="SuperConfig API")
 
 # Set up CORS middleware
 origins = [
@@ -32,4 +32,4 @@ app.include_router(api_router)
 
 @app.get("/")
 async def root(request: Request):
-    return {"message": "Kakak Agent API is running"}
+    return {"message": "SuperConfig API is running"}

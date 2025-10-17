@@ -1,5 +1,5 @@
 """
-API routes for Kakak Agent
+API routes for SuperConfig
 Handles incoming messages from various channels and manages agent interactions
 """
 
@@ -27,7 +27,7 @@ from ..database.models import get_db, Ticket, Customer
 class ChatAgentRequest(BaseModel):
     message: str = Field(..., description="Customer message to process")
     telegram_chat_id: Optional[str] = Field(None, description="Telegram chat ID for memory context")
-    host_company: Optional[str] = Field("Kakak Agent", description="The name of the host company")
+    host_company: Optional[str] = Field("SuperConfig", description="The name of the host company")
     tone_and_manner: Optional[str] = Field(None, description="The tone and manner for responses")
 
 class MemoryChatRequest(BaseModel):
