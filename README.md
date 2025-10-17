@@ -357,8 +357,8 @@ graph TB
 
 2. **Clone Repository**
 ```bash
-git clone https://github.com/EwenCheung/Agentic-AI-Kakak-Agent.git
-cd Agentic-AI-Kakak-Agent
+git clone https://github.com/EwenCheung/SuperConfig.git
+cd SuperConfig
 ```
 
 3. **Backend Setup**
